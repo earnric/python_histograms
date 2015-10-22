@@ -55,6 +55,7 @@ def genDensityPlot(x, y, mass, pf, z, minX, maxX, minY, maxY, filename, xaxislab
     
     # Note axis order: y then x
     # H is the binned data... weighted by polluted mass of the sp's
+    # TODO -- if we're looking at x = log Z, don't weight by mass * f_p... just mass!
     H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf),  # We have log bins, so we take
                                        bins=(yrange, xrange))
     print("Raw H max, scaled by polluted mass %.2lf"%H.max())
@@ -79,8 +80,8 @@ def genDensityPlot(x, y, mass, pf, z, minX, maxX, minY, maxY, filename, xaxislab
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=14)))
 
     # Setup the color bar
-    cbar = fig.colorbar(cax, ticks=[1,2,4,8,14])
-    cbar.ax.set_yticklabels(['1', '2', '4', '8', '14'], size=24)
+    cbar = fig.colorbar(cax, ticks=[1,2,4,5,8,14])
+    cbar.ax.set_yticklabels(['1', '2', '4', '5', '8', '14'], size=24)
     cbar.set_label('$log\, M_{sp, pol,\odot}\, / d\, ($ ' + xaxislabel
                    + " $) \, / d\, (log\, Z_{pri}/Z)\, /\, V$ ", size=30)
 
