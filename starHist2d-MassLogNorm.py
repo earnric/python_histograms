@@ -21,9 +21,9 @@ def colorHistOnHeight(N, patches):
     # we need to normalize the data to 0..1 for the full
     # range of the colormap
     print("N max: %.2lf"%N.max())
-    fracs = np.log10(N.astype(float))/8.0 # normalize colors to the top of our scale
+    fracs = np.log10(N.astype(float))/9.0 # normalize colors to the top of our scale
     print("fracs max: %.2lf"%fracs.max())
-    norm = mpl.colors.LogNorm(2, 8)
+    norm = mpl.colors.LogNorm(2.0, 9.0)
     # NOTE this color mapping is different from the one below.
     for thisfrac, thispatch in zip(fracs, patches):
         color = mpl.cm.jet(thisfrac)
@@ -57,6 +57,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     yrange = np.logspace(minY,maxY,ybins)
     # Note axis order: y then x
     # H is the binned data... counts normalized by star particle mass
+    # TODO -- if we're looking at x = log Z, don't weight by mass * f_p... just mass!
     H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), # We have log bins, so we take 
                                         bins=(yrange,xrange))
 
@@ -113,12 +114,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
 
     # Setup format of the histograms
     axHistx.set_xlim(ax2dhist.get_xlim())  # Match the x range on the horiz hist
-    axHistx.set_ylim([10**maxX,1e2])       # Constant range for all histograms
+    axHistx.set_ylim([100.0,10.0**9])       # Constant range for all histograms
     axHistx.tick_params(labelsize=22)
     axHistx.yaxis.set_ticks([1e2,1e4,1e6,1e8])
     axHistx.grid(color='0.75', linestyle=':', linewidth=2)
 
-    axHisty.set_xlim([10**maxY,1e2])       # We're rotated, so x axis is the value
+    axHisty.set_xlim([100.0,10.0**9])       # We're rotated, so x axis is the value
     axHisty.set_ylim([10**minY,10**maxY])  # Match the y range on the vert hist
     axHisty.tick_params(labelsize=22)
     axHisty.xaxis.set_ticks([1e2,1e4,1e6,1e8])
