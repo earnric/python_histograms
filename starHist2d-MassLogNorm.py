@@ -15,13 +15,15 @@
 
 # ##########################################################
 # Generate colors for histogram bars based on height
-# This is not right! Only approx...
+# This is not right! 
 # ##########################################################
 def colorHistOnHeight(N, patches):
     # we need to normalize the data to 0..1 for the full
     # range of the colormap
+    print("N max: %.2lf"%N.max())
     fracs = np.log10(N.astype(float))/8.0 # normalize colors to the top of our scale
-    norm = mpl.colors.Normalize(fracs.min(), fracs.max())
+    print("fracs max: %.2lf"%fracs.max())
+    norm = mpl.colors.LogNorm(2, 8)
     # NOTE this color mapping is different from the one below.
     for thisfrac, thispatch in zip(fracs, patches):
         color = mpl.cm.jet(thisfrac)
@@ -97,6 +99,10 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     ylims = ax2dhist.get_ylim()
     xlims = ax2dhist.get_xlim()
 
+    ##########################################################
+    # Create the axes histograms
+    ##########################################################
+    # Note that even with log=True, the array N is NOT log of the weighted counts
     N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass * (1.0 - pf))
     axHistx.set_xscale("log")
     colorHistOnHeight(N, patches)

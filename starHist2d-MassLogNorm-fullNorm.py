@@ -79,10 +79,10 @@ def genDensityPlot(x, y, mass, pf, z, minX, maxX, minY, maxY, filename, xaxislab
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=14)))
 
     # Setup the color bar
-    cbar = fig.colorbar(cax, ticks=[1,2,4,10,14])
-    cbar.ax.set_yticklabels(['1', '2', '4', '10', '14'], size=24)
+    cbar = fig.colorbar(cax, ticks=[1,2,4,8,14])
+    cbar.ax.set_yticklabels(['1', '2', '4', '8', '14'], size=24)
     cbar.set_label('$log\, M_{sp, pol,\odot}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, (log\, Z_{pri}/Z)\, /\, V)$ ", size=30)
+                   + " $) \, / d\, (log\, Z_{pri}/Z)\, /\, V$ ", size=30)
 
     ax2dhist.tick_params(axis='x', labelsize=22)
     ax2dhist.tick_params(axis='y', labelsize=22)
