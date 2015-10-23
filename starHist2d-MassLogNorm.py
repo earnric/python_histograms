@@ -15,21 +15,21 @@
 
 # ##########################################################
 # Generate colors for histogram bars based on height
-# This is not right! 
+# Method:
+#  Take log of the histogram values (weighted counts)..
+#  Create a LogNorm mapping between 1->9
+#  Use the norm to map scalar values between 1 & 9 to rgb
 # ##########################################################
 def colorHistOnHeight(N, patches):
-    # we need to normalize the data to 0..1 for the full
-    # range of the colormap
-    print("N max: %.2lf"%N.max())
-    fracs = np.log10(N.astype(float))/9.0 # normalize colors to the top of our scale
-    print("fracs max: %.2lf"%fracs.max())
-    norm = mpl.colors.LogNorm(2.0, 9.0)
-    # NOTE this color mapping is different from the one below.
+    cleanN = np.ma.masked_where(N == 0.0, N)
+    fracs  = np.log10(cleanN) # normalize colors to the top of our scale
+    norm   = mpl.colors.LogNorm(vmin=1.0, vmax=9.0)
+    sm     = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
+    sm.set_clim([1.0,9.0])
     for thisfrac, thispatch in zip(fracs, patches):
-        color = mpl.cm.jet(thisfrac)
+        color = sm.to_rgba(thisfrac)
         thispatch.set_facecolor(color)
-
-    return
+    return 
 
 # ##########################################################
 # Generate a combo contour/density plot
@@ -69,7 +69,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     X,Y=np.meshgrid(xrange,yrange) # Create a mess over our range of bins
     
     # Take log of the bin data
-    H = np.log10(H)
+    H = np.log10(np.ma.masked_where(H == 0.0,H))
     masked_array = np.ma.array(H, mask=np.isnan(H))  # mask out all nan, i.e. log10(0.0)
 
     # Fix colors -- white for values of 1.0. 
