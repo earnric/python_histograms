@@ -36,6 +36,7 @@ def colorHistOnHeight(N, patches):
 # Generate a combo contour/density plot
 # ##########################################################
 def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
+    labelsize = 24
     nullfmt = NullFormatter()
 
     # Plot location and size
@@ -83,12 +84,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # Setup the color bar
     cbar = fig.colorbar(cax, ticks=[1, 2, 4, 6, 8])
     cbar.ax.set_yticklabels(['1', '2', '4', '6', '8'], size=24)
-    cbar.set_label('$log\, M_{\odot, pol}$', size=30)
+    cbar.set_label('$log\, M_{\odot, pol}$', size=34)
     
-    ax2dhist.tick_params(axis='x', labelsize=22)
-    ax2dhist.tick_params(axis='y', labelsize=22)
-    ax2dhist.set_xlabel(xaxislabel, size=30)
-    ax2dhist.set_ylabel('$log\, Z_{pri}/Z$', size=30)
+    ax2dhist.tick_params(axis='x', labelsize=labelsize)
+    ax2dhist.tick_params(axis='y', labelsize=labelsize)
+    ax2dhist.set_xlabel(xaxislabel, size=34)
+    ax2dhist.set_ylabel('$log\, Z_{pri}/Z$', size=34)
 
     ax2dhist.set_xlim([10**minX,10**maxX])
     ax2dhist.set_ylim([10**minY,10**maxY])
@@ -125,13 +126,13 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # Setup format of the histograms
     axHistx.set_xlim(ax2dhist.get_xlim())  # Match the x range on the horiz hist
     axHistx.set_ylim([100.0,10.0**9])       # Constant range for all histograms
-    axHistx.tick_params(labelsize=22)
+    axHistx.tick_params(labelsize=labelsize)
     axHistx.yaxis.set_ticks([1e2,1e4,1e6,1e8])
     axHistx.grid(color='0.75', linestyle=':', linewidth=2)
 
     axHisty.set_xlim([100.0,10.0**9])       # We're rotated, so x axis is the value
     axHisty.set_ylim([10**minY,10**maxY])  # Match the y range on the vert hist
-    axHisty.tick_params(labelsize=22)
+    axHisty.tick_params(labelsize=labelsize)
     axHisty.xaxis.set_ticks([1e2,1e4,1e6,1e8])
     axHisty.grid(color='0.75', linestyle=':', linewidth=2)
 
