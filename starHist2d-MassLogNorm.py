@@ -15,30 +15,27 @@
 
 # ##########################################################
 # Generate colors for histogram bars based on height
-# This is not right! 
+# Method:
+#  Take log of the histogram values (weighted counts)..
+#  Create a LogNorm mapping between 1->9
+#  Use the norm to map scalar values between 1 & 9 to rgb
 # ##########################################################
 def colorHistOnHeight(N, patches):
-    # we need to normalize the data to 0..1 for the full
-    # range of the colormap
-    print("N max: %.2lf"%N.max())
-    fracs = np.log10(N.astype(float))/9.0 # normalize colors to the top of our scale
-    print("fracs max: %.2lf"%fracs.max())
-    norm = mpl.colors.LogNorm(2.0, 9.0)
-    # NOTE this color mapping is different from the one below.
+    cleanN = np.ma.masked_where(N == 0.0, N)
+    fracs  = np.log10(cleanN) # normalize colors to the top of our scale
+    norm   = mpl.colors.LogNorm(vmin=1.0, vmax=9.0)
+    sm     = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
+    sm.set_clim([1.0,9.0])
     for thisfrac, thispatch in zip(fracs, patches):
-        color = mpl.cm.jet(thisfrac)
+        color = sm.to_rgba(thisfrac)
         thispatch.set_facecolor(color)
-
-    return
+    return 
+        
 
 # ##########################################################
 # Generate a combo contour/density plot
 # ##########################################################
-def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
-    """
-
-    :rtype : none
-    """
+def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     nullfmt = NullFormatter()
 
     # Plot location and size
@@ -47,7 +44,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     axHistx = plt.axes(rect_histx)
     axHisty = plt.axes(rect_histy)
 
-    # Fix any "log10(0)" points...
+    # Fix any points that came in as inf...
     x[x == np.inf] = 0.0
     y[y == np.inf] = 0.0
     y[y > 1.0] = 1.0 # Fix any minor numerical errors that could result in y>1
@@ -58,8 +55,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     # Note axis order: y then x
     # H is the binned data... counts normalized by star particle mass
     # TODO -- if we're looking at x = log Z, don't weight by mass * f_p... just mass!
-    H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), # We have log bins, so we take 
-                                        bins=(yrange,xrange))
+    if normByPMass:
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), # We have log bins, so we take 
+                                            bins=(yrange,xrange))
+    else:
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass, # We have log bins, so we take 
+                                            bins=(yrange,xrange))
 
     # Use the bins to find the extent of our plot
     extent = [yedges[0], yedges[-1], xedges[0], xedges[-1]]
@@ -69,7 +70,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     X,Y=np.meshgrid(xrange,yrange) # Create a mess over our range of bins
     
     # Take log of the bin data
-    H = np.log10(H)
+    H = np.log10(np.ma.masked_where(H == 0.0,H))
     masked_array = np.ma.array(H, mask=np.isnan(H))  # mask out all nan, i.e. log10(0.0)
 
     # Fix colors -- white for values of 1.0. 
@@ -77,13 +78,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     cmap.set_bad('w', 1.)  # w is color, for values of 1.0
 
     # Create a plot of the binned
-    cax = (ax2dhist.pcolormesh(X,Y,masked_array, cmap=cmap, norm=LogNorm(vmin=1,vmax=8)))
-    print("Normalized H max %.2lf"%masked_array.max())
+    cax = (ax2dhist.pcolormesh(X,Y,masked_array, cmap=cmap, norm=LogNorm(vmin=1,vmax=9)))
 
     # Setup the color bar
     cbar = fig.colorbar(cax, ticks=[1, 2, 4, 6, 8])
     cbar.ax.set_yticklabels(['1', '2', '4', '6', '8'], size=24)
-    cbar.set_label('$log\, M_{sp, pol,\odot}$', size=30)
+    cbar.set_label('$log\, M_{\odot, pol}$', size=30)
     
     ax2dhist.tick_params(axis='x', labelsize=22)
     ax2dhist.tick_params(axis='y', labelsize=22)
@@ -104,11 +104,21 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel):
     # Create the axes histograms
     ##########################################################
     # Note that even with log=True, the array N is NOT log of the weighted counts
-    N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass * (1.0 - pf))
+    # Eventually we want to normalize these value (in N) by binwidth and overall
+    # simulation volume... but I don't know how to do that.
+    if normByPMass:
+        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass * (1.0 - pf))
+    else:
+        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass)
+
     axHistx.set_xscale("log")
     colorHistOnHeight(N, patches)
-    N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass * (1.0 - pf),
-                                    orientation='horizontal')
+    if normByPMass:
+        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass * (1.0 - pf),
+                                        orientation='horizontal')
+    else:
+        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass,
+                                        orientation='horizontal')        
     axHisty.set_yscale('log')
     colorHistOnHeight(N, patches)
 
@@ -172,7 +182,7 @@ files = [
     "06.50",
     "06.00",
     "05.50",
-    "05.09"
+    "05.00"
 ]
 # Plot parameters - global
 left, width = 0.1, 0.63
@@ -199,7 +209,7 @@ for indx, z in enumerate(files):
     minX = -8.0
     maxX = 0.5
     genDensityPlot(spZ, spPZ / spZ, spMass, spPF, z,
-                   "Z_PMassZ-MassHistLogNorm", "$log\, Z_{\odot}$")
+                   "Z-vs-Z_pri-MassHistLogFullNorm", "$log\, Z_{\odot}$", normByPMass=False)
     minX = -5.0
     genDensityPlot((spZ) / (1.0 - spPF), spPZ / spZ, spMass, spPF, z,
-                   "Z_PMassZ1-PGF-MassHistLogNorm", "$log\, Z_{\odot}/f_{pol}$")
+                   "Z-f_pol-vs-Z_pri-MassHistLog", "$log\, Z_{\odot}/f_{pol}$")
