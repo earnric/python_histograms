@@ -14,7 +14,8 @@
 # File globals...
 # Max color range value, log
 global maxCV
-maxCV = 14
+# Max value for axis histograms
+global histMax
 # Plotting range limits, log
 global minY, maxY
 global minX, maxX
@@ -23,13 +24,14 @@ global minX, maxX
 # Generate colors for histogram bars based on height
 # Method:
 #  Take log of the histogram values (weighted counts)..
-#  Create a LogNorm mapping between 1->9
-#  Use the norm to map scalar values between 1 & 9 to rgb
+#  Create a LogNorm mapping between 1->max
+#  Use the norm to map scalar values between 1 & max to rgb
 # ##########################################################
 def colorHistOnHeight(N, bins, patches, cmvol):
     cleanN = np.ma.masked_where(N == 0.0, N)
-    widths = np.diff(bins)
-    fracs  = np.log10(cleanN/widths/cmvol) # normalize colors to the top of our scale
+    ##widths = np.diff(bins)
+    ##fracs  = np.log10(cleanN/widths/cmvol) # normalize colors to the top of our scale
+    fracs  = np.log10(cleanN/cmvol) # normalize colors to the top of our scale
     norm   = mpl.colors.LogNorm(vmin=1, vmax=maxCV)
     sm     = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
     sm.set_clim([1,maxCV]) # Force to use the whole range
@@ -39,19 +41,16 @@ def colorHistOnHeight(N, bins, patches, cmvol):
     return 
 
 # ##########################################################
-# Normalizes the histogram's bar height by the bin width
-# and co-moving volume of the simulation
+# Normalizes the histogram's bar height by the co-moving
+# volume of the simulation
 # ##########################################################
 def normBarHeight(bins, patches, cmvol, rotated=False):
-    widths = np.diff(bins)
-    #print ("patches %i, bins %i"%(len(patches),len(widths)))
-    for item,dbx in zip(patches,widths):
-        #print ("Starting height: %.2f bin width: %.2e"%(item.get_height(),dbx))
+    ##widths = np.diff(bins)
+    for item in patches:
         if not rotated:
-            item.set_height(item.get_height()/dbx/cmvol)
+            item.set_height(item.get_height()/cmvol)
         else:
-            item.set_width(item.get_width()/dbx/cmvol)
-        #print ("Ending width: %.2f"%item.get_width())
+            item.set_width(item.get_width()/cmvol)
     return
 
 # ##########################################################
@@ -89,13 +88,8 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     else:
         H, xedges, yedges = np.histogram2d(y, x, weights=mass, # We have log bins, so we take 
                                             bins=(yrange,xrange))
+    ## ******* Div first, then take log? Or log H first, then divide? ********
     H = H / cmvol # Normalize by comoving volume (now we're per Mpc)
-    
-    # size of each bin in x and y dimensions
-    dx = np.diff(xrange)
-    dy = np.diff(yrange) 
-    area = dx[:,  None] * dy # compute the area of each bin using broadcasting
-    H = H / area # Normalize by bin area
     H = np.log10(np.ma.masked_where(H == 0.0,H))
     H = np.ma.array(H, mask=np.isnan(H))
 
@@ -110,10 +104,9 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=maxCV)))
 
     # Setup the color bar
-    cbar = fig.colorbar(cax, ticks=[1,2,4,6,10,maxCV])
-    cbar.ax.set_yticklabels(['1', '2', '4', '6', '10', maxCV], size=24)
-    cbar.set_label('$log\, M_{\odot, pol}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, (log\, Z_{pri}/Z)\, /\, V$ ", size=34)
+    cbar = fig.colorbar(cax, ticks=[1,2,4,6,maxCV])
+    cbar.ax.set_yticklabels(['1', '2', '4', '6', maxCV], size=24)
+    cbar.set_label('$log\, (M_{\odot, pol}\, / \, Mpc)$ ', size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
@@ -167,15 +160,21 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
 
     # Setup format of the histograms
     axHistx.set_xlim(ax2dhist.get_xlim())  # Match the x range on the horiz hist
-    axHistx.set_ylim([100.0,10.0**10])     # Constant range for all histograms
+    axHistx.set_ylim([100.0,10.0**histMax])     # Constant range for all histograms
     axHistx.tick_params(labelsize=labelsize)
-    axHistx.yaxis.set_ticks([1e3, 1e6, 1e9])
+    if histMax == 6:
+        axHistx.yaxis.set_ticks([1e2, 1e4, 1e6])
+    else:
+        axHistx.yaxis.set_ticks([1e2, 1e4, 1e6, 10.0**histMax])
     axHistx.grid(color='0.75', linestyle=':', linewidth=2)
 
-    axHisty.set_xlim([100.0,10.0**10])     # We're rotated, so x axis is the value
+    axHisty.set_xlim([100.0,10.0**histMax])     # We're rotated, so x axis is the value
     axHisty.set_ylim([10**minY,10**maxY])  # Match the y range on the vert hist
     axHisty.tick_params(labelsize=labelsize)
-    axHisty.xaxis.set_ticks([1e3, 1e6, 1e9])
+    if histMax == 6:
+        axHisty.xaxis.set_ticks([1e2, 1e4, 1e6])
+    else:
+        axHisty.xaxis.set_ticks([1e2, 1e4, 1e6, 10.0**histMax])
     axHisty.grid(color='0.75', linestyle=':', linewidth=2)
 
     # no labels
@@ -185,7 +184,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     if z[0] == '0': z = z[1:]
     axHistx.set_title('z=' + z, size=40)
 
-    plt.savefig(filename + "-z_" + z + ".png", dpi=fig.dpi)
+    plt.savefig(filename + "-z_%02i.png"%int(float(z)), dpi=fig.dpi)
     #    plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return
@@ -240,7 +239,7 @@ xbins = ybins = 100
 
 # Process files and generate plots
 prefix = "./"
-# prefix="20Sep-BIG/"
+maxCV = 8
 for indx, z in enumerate(files):
     spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
@@ -252,14 +251,16 @@ for indx, z in enumerate(files):
     # Set plot limits, log space
     minY = -4.0; maxY = 0.5
     minX = -8.0; maxX = 0.5
+    histMax = 8
     genDensityPlot(spZ, # x-axis
                    np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
                    spMass, spPF, z,
-                   "Z-vs-Z_pri-MassHistLogFullNorm", "$log\, Z_{\odot}$", normByPMass=False)
+                   "Z-vs-Z_pri-MassHistLog", "$log\, Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
+    histMax = 6
     f_pol = np.where((1.0 - spPF) > 0.0,(1.0 - spPF), 0) # The polluted fraction
     genDensityPlot(np.where(f_pol > 0, spZ / f_pol, 0.0), # x-axis
                    np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
                    spMass, spPF, z,
-                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm", "$log\, Z_{\odot}/f_{pol}$")
+                   "Z-f_pol-vs-Z_pri-MassHistLog", "$log\, Z_{\odot}/f_{pol}$")
