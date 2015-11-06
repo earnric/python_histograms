@@ -103,7 +103,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # size of each bin in x and y dimensions, in log
     dx = np.diff(np.log10(xrange))
     dy = np.diff(np.log10(yrange))
-    area = dx[:,  None] * dy # compute the area of each bin using broadcasting
+    area = dx[:, None] * dy # compute the area of each bin using broadcasting
 
     H = H / area # Normalize by bin area
     H = np.log10(np.ma.masked_where(H == 0.0,H))

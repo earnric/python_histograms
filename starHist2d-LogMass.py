@@ -83,12 +83,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # H is the binned data... weighted by polluted mass of the sp's
     # TODO -- if we're looking at x = log Z, don't weight by mass * f_p... just mass!
     if normByPMass:
-        H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), # We have log bins, so we take 
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf),
                                             bins=(yrange,xrange))
     else:
-        H, xedges, yedges = np.histogram2d(y, x, weights=mass, # We have log bins, so we take 
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass, 
                                             bins=(yrange,xrange))
-    ## ******* Div first, then take log? Or log H first, then divide? ********
+
     H = H / cmvol # Normalize by comoving volume (now we're per Mpc)
     H = np.log10(np.ma.masked_where(H == 0.0,H))
     H = np.ma.masked_invalid(H)
@@ -106,7 +106,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # Setup the color bar
     cbar = fig.colorbar(cax, ticks=[1,2,4,6,maxCV])
     cbar.ax.set_yticklabels(['1', '2', '4', '6', maxCV], size=24)
-    cbar.set_label('log\, $(M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
+    cbar.set_label('log $(M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
