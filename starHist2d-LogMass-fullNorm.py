@@ -6,10 +6,12 @@
 #  Reads star particle data and creates prob density plots
 #  Places histograms of x and y axis along axes
 #  The data is normalized by bin size (area for hist2d,
-#  width for hist) and comoving sim volume (in Mpc)
+#  width for hist) and comoving sim volume (in Mpc). The
+#  data is also plotted on log scales.
 #
 # Revision history
 #  29 Oct 2015 - Initial version
+#  04 Nov 2015 - Fixed normalization
 
 # File globals...
 # Max color range value, log
@@ -88,18 +90,19 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # H is the binned data... weighted by polluted mass of the sp's
     # TODO -- if we're looking at x = log Z, don't weight by mass * f_p... just mass!
     if normByPMass:
-        H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), # We have log bins, so we take 
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass * (1.0 - pf), 
                                             bins=(yrange,xrange))
     else:
-        H, xedges, yedges = np.histogram2d(y, x, weights=mass, # We have log bins, so we take 
+        H, xedges, yedges = np.histogram2d(y, x, weights=mass, 
                                             bins=(yrange,xrange))
-    ## ******* Div first, then take log? Or log H first, then divide? ********
+    # Normalize the histogram data... 
     H = H / cmvol # Normalize by comoving volume (now we're per Mpc)
     
-    # size of each bin in x and y dimensions
+    # size of each bin in x and y dimensions, in log
     dx = np.diff(np.log10(xrange))
     dy = np.diff(np.log10(yrange))
     area = dx[:,  None] * dy # compute the area of each bin using broadcasting
+
     H = H / area # Normalize by bin area
     H = np.log10(np.ma.masked_where(H == 0.0,H))
     H = np.ma.array(H, mask=np.isnan(H))
@@ -193,11 +196,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     axHistx.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-    if z[0] == '0': z = z[1:]
-    axHistx.set_title('z=' + z, size=40)
+    titlez = z
+    if z[0] == '0': titlez = z[1:]
+    axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + "-z_%02i.png"%int(float(z)), dpi=fig.dpi)
-    #    plt.show()
+    plt.savefig(filename + "-z_%s.png"%z, dpi=fig.dpi)
+    # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return
 
@@ -251,7 +255,7 @@ xbins = ybins = 100
 
 # Process files and generate plots
 prefix = "./"
-maxCV = 14
+maxCV = 10
 for indx, z in enumerate(files):
     spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
@@ -267,7 +271,7 @@ for indx, z in enumerate(files):
     genDensityPlot(spZ, # x-axis
                    np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
                    spMass, spPF, z,
-                   "Z-vs-Z_pri-MassHistLogFullNorm-Fixed", "log $Z_{\odot}$", normByPMass=False)
+                   "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
     histMax = 10
@@ -275,4 +279,4 @@ for indx, z in enumerate(files):
     genDensityPlot(np.where(f_pol > 0, spZ / f_pol, 0.0), # x-axis
                    np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
                    spMass, spPF, z,
-                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm-Fixed", "log $Z_{\odot}/f_{pol}$")
+                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm", "log $(Z_{\odot}/f_{pol})$")

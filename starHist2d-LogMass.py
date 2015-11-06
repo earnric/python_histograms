@@ -106,7 +106,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # Setup the color bar
     cbar = fig.colorbar(cax, ticks=[1,2,4,6,maxCV])
     cbar.ax.set_yticklabels(['1', '2', '4', '6', maxCV], size=24)
-    cbar.set_label('$log\, (M_{\odot, pol}\, / \, Mpc)$ ', size=34)
+    cbar.set_label('$log\, (M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
@@ -181,11 +181,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     axHistx.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-    if z[0] == '0': z = z[1:]
-    axHistx.set_title('z=' + z, size=40)
+    titlez = z
+    if z[0] == '0': titlez = z[1:]
+    axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + "-z_%02i.png"%int(float(z)), dpi=fig.dpi)
-    #    plt.show()
+    plt.savefig(filename + "-z_%s.png"%z, dpi=fig.dpi)
+    # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return
 
