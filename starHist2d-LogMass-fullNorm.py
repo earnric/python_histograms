@@ -32,9 +32,11 @@ global minX, maxX
 # ##########################################################
 def colorHistOnHeight(N, bins, patches, cmvol):
     cleanN = np.ma.masked_where(N == 0.0, N)
-    widths = np.diff(bins)
-    fracs  = np.log10(cleanN/widths/cmvol) # normalize colors to the top of our scale
-    norm   = mpl.colors.LogNorm(vmin=1, vmax=maxCV)
+    widths = np.diff(np.log10(bins))
+    fracs  = np.log10(cleanN/widths/cmvol)
+
+    # normalize colors to the top of our scale
+    norm   = mpl.colors.LogNorm(vmin=1, vmax=maxCV) 
     sm     = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
     sm.set_clim([1,maxCV]) # Force to use the whole range
     for thisfrac, thispatch in zip(fracs, patches):
@@ -47,7 +49,7 @@ def colorHistOnHeight(N, bins, patches, cmvol):
 # and comoving volume of the simulation
 # ##########################################################
 def normBarHeight(bins, patches, cmvol, rotated=False):
-    widths = np.diff(bins)
+    widths = np.diff(np.log10(bins))
     #print ("patches %i, bins %i"%(len(patches),len(widths)))
     for item,dbx in zip(patches,widths):
         #print ("Starting height: %.2f bin width: %.2e"%(item.get_height(),dbx))
@@ -105,7 +107,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
 
     H = H / area # Normalize by bin area
     H = np.log10(np.ma.masked_where(H == 0.0,H))
-    H = np.ma.array(H, mask=np.isnan(H))
+    H = np.ma.masked_invalid(H)
 
     X, Y = np.meshgrid(xrange, yrange)  # Create a grid over the range of bins for the plot
 
@@ -269,14 +271,14 @@ for indx, z in enumerate(files):
     minX = -8.0; maxX = 0.5
     histMax = 12
     genDensityPlot(spZ, # x-axis
-                   np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
+                   np.ma.masked_invalid(spPZ / spZ), # y-axis
                    spMass, spPF, z,
                    "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
     histMax = 10
-    f_pol = np.where((1.0 - spPF) > 0.0,(1.0 - spPF), 0)  # The polluted fraction
-    genDensityPlot(np.where(f_pol > 0, spZ / f_pol, 0.0), # x-axis
-                   np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
+    f_pol = np.ma.masked_less_equal((1.0 - spPF), 0.0)  # The polluted fraction
+    genDensityPlot(np.ma.masked_invalid(spZ / f_pol), # x-axis
+                   np.ma.masked_invalid(spPZ / spZ),  # y-axis
                    spMass, spPF, z,
                    "Z-f_pol-vs-Z_pri-MassHistLogFullNorm", "log $(Z_{\odot}/f_{pol})$")

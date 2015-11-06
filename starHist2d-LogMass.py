@@ -91,7 +91,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     ## ******* Div first, then take log? Or log H first, then divide? ********
     H = H / cmvol # Normalize by comoving volume (now we're per Mpc)
     H = np.log10(np.ma.masked_where(H == 0.0,H))
-    H = np.ma.array(H, mask=np.isnan(H))
+    H = np.ma.masked_invalid(H)
 
     X, Y = np.meshgrid(xrange, yrange)  # Create a grid over the range of bins for the plot
 
@@ -106,12 +106,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     # Setup the color bar
     cbar = fig.colorbar(cax, ticks=[1,2,4,6,maxCV])
     cbar.ax.set_yticklabels(['1', '2', '4', '6', maxCV], size=24)
-    cbar.set_label('$log\, (M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
+    cbar.set_label('log\, $(M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
     ax2dhist.set_xlabel(xaxislabel, size=34)
-    ax2dhist.set_ylabel('$log\, Z_{pri}/Z$', size=34)
+    ax2dhist.set_ylabel('log $(Z_{pri}/Z)$', size=34)
 
     ax2dhist.set_xlim([10**minX,10**maxX])
     ax2dhist.set_ylim([10**minY,10**maxY])
@@ -254,14 +254,14 @@ for indx, z in enumerate(files):
     minX = -8.0; maxX = 0.5
     histMax = 8
     genDensityPlot(spZ, # x-axis
-                   np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
+                   np.ma.masked_invalid(spPZ / spZ), # y-axis
                    spMass, spPF, z,
-                   "Z-vs-Z_pri-MassHistLog", "$log\, Z_{\odot}$", normByPMass=False)
+                   "Z-vs-Z_pri-MassHistLog", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
     histMax = 6
     f_pol = np.where((1.0 - spPF) > 0.0,(1.0 - spPF), 0) # The polluted fraction
-    genDensityPlot(np.where(f_pol > 0, spZ / f_pol, 0.0), # x-axis
-                   np.where(spZ != 0.0, spPZ / spZ, 0.0), # y-axis
+    genDensityPlot(np.ma.masked_invalid(spZ / f_pol), # x-axis
+                   np.ma.masked_invalid(spPZ / spZ),  # y-axis
                    spMass, spPF, z,
-                   "Z-f_pol-vs-Z_pri-MassHistLog", "$log\, Z_{\odot}/f_{pol}$")
+                   "Z-f_pol-vs-Z_pri-MassHistLog", "log $(Z_{\odot}/f_{pol})$")
