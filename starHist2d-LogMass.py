@@ -13,7 +13,7 @@
 
 # File globals...
 # Max color range value, log
-global maxCV
+global minCV, maxCV
 # Max value for axis histograms
 global histMax
 # Plotting range limits, log
@@ -101,7 +101,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
 
     # Create a plot of the binned data, use a fixed lognormal scale
     #ma = ma/cmvol # normalize by sim physical volume at z
-    cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=maxCV)))
+    cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=minCV,vmax=maxCV)))
 
     # Setup the color bar
     cbarticks = [1,2,4,6,8,maxCV]
