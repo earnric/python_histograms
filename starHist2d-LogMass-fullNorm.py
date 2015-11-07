@@ -15,7 +15,7 @@
 
 # File globals...
 # Max color range value, log
-global maxCV
+global minCV,maxCV
 # Max value for axis histograms
 global histMax
 # Plotting range limits, log
@@ -38,7 +38,7 @@ def colorHistOnHeight(N, bins, patches, cmvol):
     # normalize colors to the top of our scale
     norm   = mpl.colors.LogNorm(vmin=1, vmax=maxCV) 
     sm     = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.jet)
-    sm.set_clim([1,maxCV]) # Force to use the whole range
+    sm.set_clim([minCV, maxCV]) # Force to use the whole range
     for thisfrac, thispatch in zip(fracs, patches):
         color = sm.to_rgba(thisfrac)
         thispatch.set_facecolor(color)
@@ -116,14 +116,15 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     cmap.set_bad('w', 1.)  # w is color, for values of 1.0
 
     # Create a plot of the binned data, use a fixed lognormal scale
-    #ma = ma/cmvol # normalize by sim physical volume at z
-    cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=maxCV)))
+    cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=minCV,vmax=maxCV)))
 
     # Setup the color bar
-    cbar = fig.colorbar(cax, ticks=[1,2,4,6,10,maxCV])
-    cbar.ax.set_yticklabels(['1', '2', '4', '6', '10', maxCV], size=24)
+    cbarticks = [1,2,4,6,8,10,maxCV]
+    cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,10,maxCV])
+    cbar.ax.set_yticklabels(cbarticks, size=24)
+        
     cbar.set_label('log $(M_{\odot, pol}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, (log\, Z_{pri}/Z)\, /\, Mpc^{3})$ ", size=34)
+                   + " $) \, / d\, ($log $Z_{pri}/Z)\, /\, Mpc^{3})$ ", size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
@@ -141,12 +142,9 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     ylims = ax2dhist.get_ylim()
 
     ##########################################################
-    # Create the axes histograms
-    # Note (in paper) that the values/colors in the hist's
-    # are normalized by only the bin width, not the 2D bin-
-    # area -- which is the way the color bar is labeled.
-    ##########################################################
-    # Note that even with log=True, the array N is NOT log of the weighted counts
+    # Create the histograms for the x and y axes
+    # Note that even with log=True, the array N is NOT log of the
+    # weighted counts. 
     # Normalize the histogram heights by the bin width & comoving volume
     if normByPMass:
         N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass * (1.0 - pf))
@@ -159,9 +157,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     colorHistOnHeight(N, bins, patches, cmvol)
 
     ##########################################################
-    # Note when working with "orientation='horizonatal' the
-    # height/width attributes are swtiched! Width is the
-    # 'length' in the x-direction, so it's what we need to use
+    # Create the histograms for the x and y axes
     if normByPMass:
         N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass * (1.0 - pf),
                                         orientation='horizontal')
@@ -257,7 +253,7 @@ xbins = ybins = 100
 
 # Process files and generate plots
 prefix = "./"
-maxCV = 10
+minCV = 1; maxCV = 12
 for indx, z in enumerate(files):
     spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
@@ -271,14 +267,14 @@ for indx, z in enumerate(files):
     minX = -8.0; maxX = 0.5
     histMax = 12
     genDensityPlot(spZ, # x-axis
-                   np.ma.masked_invalid(spPZ / spZ), # y-axis
+                   (spPZ / spZ), # y-axis
                    spMass, spPF, z,
                    "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
     histMax = 10
     f_pol = np.ma.masked_less_equal((1.0 - spPF), 0.0)  # The polluted fraction
-    genDensityPlot(np.ma.masked_invalid(spZ / f_pol), # x-axis
-                   np.ma.masked_invalid(spPZ / spZ),  # y-axis
+    genDensityPlot((spZ / f_pol), # x-axis
+                   (spPZ / spZ),  # y-axis
                    spMass, spPF, z,
                    "Z-f_pol-vs-Z_pri-MassHistLogFullNorm", "log $(Z_{\odot}/f_{pol})$")

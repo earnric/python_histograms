@@ -104,8 +104,9 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=1,vmax=maxCV)))
 
     # Setup the color bar
-    cbar = fig.colorbar(cax, ticks=[1,2,4,6,maxCV])
-    cbar.ax.set_yticklabels(['1', '2', '4', '6', maxCV], size=24)
+    cbarticks = [1,2,4,6,8,maxCV]
+    cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,maxCV])
+    cbar.ax.set_yticklabels(cbarticks, size=24)
     cbar.set_label('log $(M_{\odot, pol}\, / \, Mpc^{3})$ ', size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
@@ -240,7 +241,7 @@ xbins = ybins = 100
 
 # Process files and generate plots
 prefix = "./"
-maxCV = 8
+minCV = 1; maxCV = 8
 for indx, z in enumerate(files):
     spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
@@ -254,14 +255,14 @@ for indx, z in enumerate(files):
     minX = -8.0; maxX = 0.5
     histMax = 8
     genDensityPlot(spZ, # x-axis
-                   np.ma.masked_invalid(spPZ / spZ), # y-axis
+                   (spPZ / spZ), # y-axis
                    spMass, spPF, z,
                    "Z-vs-Z_pri-MassHistLog", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
     histMax = 6
     f_pol = np.where((1.0 - spPF) > 0.0,(1.0 - spPF), 0) # The polluted fraction
-    genDensityPlot(np.ma.masked_invalid(spZ / f_pol), # x-axis
-                   np.ma.masked_invalid(spPZ / spZ),  # y-axis
+    genDensityPlot((spZ / f_pol), # x-axis
+                   (spPZ / spZ),  # y-axis
                    spMass, spPF, z,
                    "Z-f_pol-vs-Z_pri-MassHistLog", "log $(Z_{\odot}/f_{pol})$")
