@@ -260,7 +260,7 @@ for indx, z in enumerate(files):
                    "Z-vs-Z_pri-MassHistLog", "log $Z_{\odot}$", normByPMass=False)
     
     minX = -5.0
-    histMax = 6
+    histMax = 8
     f_pol = np.where((1.0 - spPF) > 0.0,(1.0 - spPF), 0) # The polluted fraction
     genDensityPlot((spZ / f_pol), # x-axis
                    (spPZ / spZ),  # y-axis

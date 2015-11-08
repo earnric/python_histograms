@@ -124,7 +124,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     cbar.ax.set_yticklabels(cbarticks, size=24)
         
     cbar.set_label('log $(M_{\odot, pol}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, ($log $Z_{pri}/Z)\, /\, Mpc^{3})$ ", size=34)
+                   + " $) \, / d\, ($log ($Z_{pri}/Z))\, /\, Mpc^{3})$ ", size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
