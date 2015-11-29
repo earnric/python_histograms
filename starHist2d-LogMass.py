@@ -58,7 +58,7 @@ def normBarHeight(bins, patches, cmvol, rotated=False):
 # of the x and y values along axes
 # ##########################################################
 def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
-    labelsize = 24
+    labelsize = 34
     nullfmt = NullFormatter()
 
     # Plot location and size
@@ -186,7 +186,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     if z[0] == '0': titlez = z[1:]
     axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + "-z_%s.png"%z, dpi=fig.dpi)
+    plt.savefig(filename + "-z_%s.pdf"%z, dpi=fig.dpi)
     # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return

@@ -61,12 +61,24 @@ def normBarHeight(bins, patches, cmvol, rotated=False):
     return
 
 # ##########################################################
+# Format tick labels using their exponent only... 
+# ##########################################################
+def formatter(x,pos):
+    return format(np.log10(x), '.0f')
+
+# ##########################################################
 # Generate a density plot in log-log space, put histograms
 # of the x and y values along axes
 # ##########################################################
 def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
-    labelsize = 24
+    import matplotlib.patches as patches
+    from matplotlib.ticker import FuncFormatter
+
+    labelsize = 34
     nullfmt = NullFormatter()
+
+    #FuncFormatter class instance defined from the function above
+    custom_formatter = FuncFormatter(formatter)
 
     # Plot location and size
     fig = plt.figure(figsize=(20, 20))
@@ -119,24 +131,27 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=minCV,vmax=maxCV)))
 
     # Setup the color bar
-    cbarticks = [1,2,4,6,8,10,maxCV]
-    cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,10,maxCV])
+    cbarticks = [1,2,4,6,8,maxCV]
+    cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,maxCV])
     cbar.ax.set_yticklabels(cbarticks, size=24)
         
     cbar.set_label('log $(M_{\odot, pol}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, ($log ($Z_{pri}/Z))\, /\, Mpc^{3})$ ", size=34)
+                   + " $) \, / d\, ($log $(Z_{pri}/Z))\, /\, Mpc^{3})$ ", size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
     ax2dhist.set_xlabel(xaxislabel, size=34)
     ax2dhist.set_ylabel('log $(Z_{pri}/Z)$', size=34)
-
+    
     ax2dhist.set_xlim([10**minX,10**maxX])
     ax2dhist.set_ylim([10**minY,10**maxY])
     ax2dhist.set_xscale('log')
     ax2dhist.set_yscale('log')
     ax2dhist.grid(color='0.75', linestyle=':', linewidth=2)
 
+    ax2dhist.xaxis.set_major_formatter(custom_formatter)
+    ax2dhist.yaxis.set_major_formatter(custom_formatter)
+    
     # Generate the xy axes histograms
     xlims = ax2dhist.get_xlim()
     ylims = ax2dhist.get_ylim()
@@ -180,6 +195,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     else:
         axHistx.yaxis.set_ticks([1e3, 1e6, 1e9, 1e12])
     axHistx.grid(color='0.75', linestyle=':', linewidth=2)
+    axHistx.yaxis.set_major_formatter(custom_formatter) # Use integers for ticks
 
     axHisty.set_xlim([100.0,10.0**histMax])     # We're rotated, so x axis is the value
     axHisty.set_ylim([10**minY,10**maxY])  # Match the y range on the vert hist
@@ -189,6 +205,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     else:
         axHisty.xaxis.set_ticks([1e3, 1e6, 1e9, 1e12])
     axHisty.grid(color='0.75', linestyle=':', linewidth=2)
+    axHisty.xaxis.set_major_formatter(custom_formatter) # Use integers for ticks
 
     # no labels
     axHistx.xaxis.set_major_formatter(nullfmt)
@@ -196,9 +213,9 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
 
     titlez = z
     if z[0] == '0': titlez = z[1:]
-    axHistx.set_title('z=' + titlez, size=40)
+    ## axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + "-z_%s.png"%z, dpi=fig.dpi)
+    plt.savefig(filename + "-z_%s.pdf"%z, dpi=fig.dpi)
     # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return
@@ -220,28 +237,28 @@ import numpy as np
 import copy as copy
 
 files = [
-    "18.00",
-    "17.00",
+    ## "18.00",
+    ##"17.00",
     "16.00",
-    "15.00",
-    "14.00",
-    "13.00",
-    "12.00",
-    "11.00",
-    "10.00",
-    "09.00",
-    "08.50",
+    ## "15.00",
+    ## "14.00",
+    ## "13.00",
+    ## "12.00",
+    ## "11.00",
+    ## "10.00",
+    ## "09.00",
+    ## "08.50",
     "08.00",
-    "07.50",
-    "07.00",
-    "06.50",
+    ## "07.50",
+    ## "07.00",
+    ## "06.50",
     "06.00",
-    "05.50",
+    ## "05.50",
     "05.00"
 ]
 # Plot area sizes...
-left, width = 0.1, 0.63
-bottom, height = 0.1, 0.63
+left, width = 0.1, 0.61
+bottom, height = 0.1, 0.61
 bottom_h = left_h = left + width + 0.01
 
 rect_2dhist = [left, bottom, width, height]
@@ -253,9 +270,9 @@ xbins = ybins = 100
 
 # Process files and generate plots
 prefix = "./"
-minCV = 1; maxCV = 12
+minCV = 1; maxCV = 10
 for indx, z in enumerate(files):
-    spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
+    spZ  = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
     spPF = np.loadtxt(prefix + "spPPF_" + z + ".txt", skiprows=1)
     spMass = np.loadtxt(prefix + "spMass_" + z + ".txt", skiprows=1)
@@ -265,7 +282,7 @@ for indx, z in enumerate(files):
     # Set plot limits, log space
     minY = -4.0; maxY = 0.5
     minX = -8.0; maxX = 0.5
-    histMax = 12
+    histMax = 10
     genDensityPlot(spZ, # x-axis
                    (spPZ / spZ), # y-axis
                    spMass, spPF, z,
