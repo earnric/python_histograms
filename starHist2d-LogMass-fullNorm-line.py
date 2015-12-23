@@ -251,8 +251,8 @@ import copy as copy
 
 files = [
     ## "18.00",
-    ## "17.00",
-    ## "16.00",
+    ##"17.00",
+    "16.00",
     ## "15.00",
     ## "14.00",
     ## "13.00",
@@ -261,14 +261,15 @@ files = [
     ## "10.00",
     ## "09.00",
     ## "08.50",
-    ## "08.00",
+    "08.00",
     ## "07.50",
-    "07.00",
-    "06.50",
+    ## "07.00",
+    ## "06.50",
     "06.00",
-    "05.50",
+    ## "05.50",
     "05.00"
 ]
+
 # Plot area sizes...
 left, width = 0.1, 0.61
 bottom, height = 0.1, 0.61
@@ -295,16 +296,16 @@ for indx, z in enumerate(files):
     # Set plot limits, log space
     minY = -4.0; maxY = 0.5
     minX = -8.0; maxX = 0.5
-    ## histMax = 12
-    ## genDensityPlot(spZ, # x-axis
-    ##                 (spPZ / spZ), # y-axis
-    ##                spMass, spPF, z,
-    ##                "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
+    histMax = 12
+    genDensityPlot(spZ, # x-axis
+                    (spPZ / spZ), # y-axis
+                   spMass, spPF, z,
+                   "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
     
-    minX = -5.0
+    ## minX = -5.0
     histMax = 10
     f_pol = np.ma.masked_less_equal((1.0 - spPF), 0.0)  # The polluted fraction
     genDensityPlot((spZ / f_pol), # x-axis
                    (spPZ / spZ),  # y-axis
                    spMass, spPF, z,
-                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm-box", "log $(Z_{\odot}/f_{pol})$")
+                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm-line", "log $(Z_{\odot}/f_{pol})$")

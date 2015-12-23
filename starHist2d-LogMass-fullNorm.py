@@ -70,9 +70,14 @@ def formatter(x,pos):
 # Generate a density plot in log-log space, put histograms
 # of the x and y values along axes
 # ##########################################################
-def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
+def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPMass=True):
     import matplotlib.patches as patches
     from matplotlib.ticker import FuncFormatter
+
+    mass = mass[x < 1E-3]
+    pf = pf[x < 1E-3]
+    y=y[x < 1E-3]
+    x=x[x < 1E-3]
 
     labelsize = 34
     nullfmt = NullFormatter()
@@ -141,7 +146,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, normByPMass=True):
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
     ax2dhist.set_xlabel(xaxislabel, size=34)
-    ax2dhist.set_ylabel('log $(Z_{pri}/Z)$', size=34)
+    ax2dhist.set_ylabel(yaxislabel, size=34)
     
     ax2dhist.set_xlim([10**minX,10**maxX])
     ax2dhist.set_ylim([10**minY,10**maxY])
@@ -239,20 +244,20 @@ import copy as copy
 files = [
     ## "18.00",
     ##"17.00",
-    "16.00",
+    ##"16.00",
     ## "15.00",
     ## "14.00",
     ## "13.00",
-    ## "12.00",
+    ##"12.00",
     ## "11.00",
     ## "10.00",
     ## "09.00",
     ## "08.50",
-    "08.00",
+    ##"08.00",
     ## "07.50",
     ## "07.00",
     ## "06.50",
-    "06.00",
+    ## "06.00",
     ## "05.50",
     "05.00"
 ]
@@ -280,18 +285,36 @@ for indx, z in enumerate(files):
     print ("Generating phase diagram for z=%s" % z)
 
     # Set plot limits, log space
-    minY = -4.0; maxY = 0.5
-    minX = -8.0; maxX = 0.5
+    minY = -8.2; maxY = 0.5
+    minX = -8.2; maxX = 0.5
     histMax = 10
-    genDensityPlot(spZ, # x-axis
-                   (spPZ / spZ), # y-axis
-                   spMass, spPF, z,
-                   "Z-vs-Z_pri-MassHistLogFullNorm", "log $Z_{\odot}$", normByPMass=False)
-    
-    minX = -5.0
+
+    minX = -8.2
     histMax = 10
     f_pol = np.ma.masked_less_equal((1.0 - spPF), 0.0)  # The polluted fraction
-    genDensityPlot((spZ / f_pol), # x-axis
-                   (spPZ / spZ),  # y-axis
+    
+    genDensityPlot(
+                   (spZ / f_pol) - (spPZ/f_pol)+1e-8, # x-axis
+                   (spPZ / f_pol),  # y-axis
                    spMass, spPF, z,
-                   "Z-f_pol-vs-Z_pri-MassHistLogFullNorm", "log $(Z_{\odot}/f_{pol})$")
+                   "Z-ZP_f-vs-ZP_f-2", "log $((Z_{\odot}-ZP_{\odot})/f_{pol})$","log $(ZP_{\odot}/f_{pol})$")
+
+    genDensityPlot(
+                   (spZ / f_pol) - (spPZ/f_pol)+1e-8, # x-axis
+                   (spZ / f_pol),  # y-axis
+                   spMass, spPF, z,
+                   "Z-ZP_f-vs-Z_f-2", "log $((Z_{\odot}-ZP_{\odot})/f_{pol})$","log $(Z_{\odot}/f_{pol})$")
+
+    genDensityPlot(
+                   (spZ  - spPZ)+1e-8, # x-axis
+                   (spPZ),  # y-axis
+                   spMass, spPF, z,
+                   "Z-ZP-vs-ZP-2", "log $(Z_{\odot}-ZP_{\odot})$","log $(ZP_{\odot})$",False)
+
+    genDensityPlot(
+                   (spZ  - spPZ)+1e-8, # x-axis
+                   (spZ),  # y-axis
+                   spMass, spPF, z,
+                   "Z-ZP-vs-Z-2", "log $(Z_{\odot}-ZP_{\odot})$","log $(Z_{\odot})$",False)
+
+    

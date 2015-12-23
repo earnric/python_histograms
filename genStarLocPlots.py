@@ -51,18 +51,18 @@ norm   = mpl.colors.BoundaryNorm(bounds, cmap.N)
 ## ZFiles    = [f for f in os.listdir('.') if re.match(r'spZ_[0-9]*.*.txt', f)]
 ## ppfFiles  = [f for f in os.listdir('.') if re.match(r'spPPF_[0-9]*.*.txt', f)]
 ## ppzFiles  = [f for f in os.listdir('.') if re.match(r'spPZ_[0-9]*.*.txt', f)]
-locFiles  = ['spLoc_16.00.txt','spLoc_08.00.txt' ]
-massFiles = ['spMass_16.00.txt','spMass_08.00.txt']
-ZFiles    = ['spZ_16.00.txt','spZ_08.00.txt']
-ppfFiles  = ['spPPF_16.00.txt','spPPF_08.00.txt']
-ppzFiles  = ['spPZ_16.00.txt','spPZ_08.00.txt']
+locFiles  = ['spLoc_16.00.txt','spLoc_12.00.txt','spLoc_10.00.txt','spLoc_08.00.txt','spLoc_05.00.txt' ]
+massFiles = ['spMass_16.00.txt','spMass_12.00.txt','spMass_10.00.txt','spMass_08.00.txt','spMass_05.00.txt']
+ZFiles    = ['spZ_16.00.txt','spZ_12.00.txt','spZ_10.00.txt','spZ_08.00.txt','spZ_05.00.txt']
+ppfFiles  = ['spPPF_16.00.txt','spPPF_12.00.txt','spPPF_10.00.txt','spPPF_08.00.txt','spPPF_05.00.txt']
+ppzFiles  = ['spPZ_16.00.txt','spPZ_12.00.txt','spPZ_10.00.txt','spPZ_08.00.txt','spPZ_05.00.txt']
 
 # Sort the files
 # Not needed if manually create list.
-#locFiles.sort();massFiles.sort();ZFiles.sort();ppfFiles.sort();ppzFiles.sort()
+locFiles.sort();massFiles.sort();ZFiles.sort();ppfFiles.sort();ppzFiles.sort()
 
 #zs  = np.loadtxt("zKeysForSPfiles.txt",skiprows=1)
-zs  = np.loadtxt("PaperzKeysForSPfiles.txt",skiprows=1)
+zs  = np.loadtxt("subsetzKeysForSPfiles.txt",skiprows=1)
 
 if len(locFiles) != len(zs):
     print("Diff # of files to process than I have redshifts")
@@ -72,39 +72,43 @@ dotNorm = 10.0  # For dot-size scaling
 comovbox = 5.0 
 i = 0
 for locF,massF,ZF,ppfF,pzfF in zip(locFiles,massFiles,ZFiles,ppfFiles,ppzFiles):
+    print("Working on "+str(zs[i]))
+    print("with "+str(locF))
     z    = zs[i][0]
     bs   = zs[i][1] 
     sbox = comovbox / (1.0 + z) * 0.71 # Create a box that's sbox kpc physical
-    print ("z=%.3lf"%z)
+    print ("z=%.1lf"%z)
     spPosExp = r'z%05.2lf_SpCoord_[0-9]*.txt' %z # These are the x,y,z locations of interest from the genStarPlots6.py
     poisFiles  = [f for f in os.listdir('.') if re.match(spPosExp, f)]
     poisFiles.sort()
 
+    poisFiles = ['z05.00_SpCoord_2562828.txt'] # Just process one...
     for indx, poi in enumerate(poisFiles):
         print( "Star locs: ", locF)
         print( "Coord file: ", poi)
         locs = np.loadtxt(locF,skiprows=1) 
         mass = np.loadtxt(massF,skiprows=1)
-        Z    = np.loadtxt(ZF,skiprows=1)
-        #ppf  = np.loadtxt(ppfF,skiprows=1)
-        #pzf  = np.loadtxt(pzfF,skiprows=1)
+        Z    = np.loadtxt(ZF,skiprows=1) # SOLAR units in the file... 
+        ppf  = np.loadtxt(ppfF,skiprows=1)
+        pzf  = np.loadtxt(pzfF,skiprows=1)
 
-        Z[Z<1.0e-7] = 1.0e-10
-        #pzf[pzf<1.0e-7] = 1.0e-7
+        Z[Z<1.0e-5] = 1.0e-10
+        pzf[pzf<1.0e-5] = 1.0e-10
 
         x,y,zz = np.loadtxt(poi)  # star particle location of interest
         xo,yo,zo = x,y,zz
         print( "Star offset [%.2lf %.2lf %.2lf]"%(x,y,zz))
         print( "Boxsize at this z (physical) %.4lf"%bs)
-        print( "Our box at this z (physical) %.4lf"%sbox)
-        # Ensure we center such that we can depict the sbox kpc box
-        if (abs(x) > bs/2.0 - sbox/2.0):
-            x = np.sign(x) * (bs/2.0 - sbox/2.0)
-        if (abs(y) > bs/2.0 - sbox/2.0):
-            y = np.sign(y) * (bs/2.0 - sbox/2.0)
-        if (abs(zz) > bs/2.0 - sbox/2.0):
-            zz = np.sign(zz) * (bs/2.0 - sbox/2.0)
-        print( "Star offset adjusted for boxsize [%.2lf %.2lf %.2lf]"%(x,y,zz))
+        print( "Our 5 kpc (comov) box at this z (physical) %.4lf"%sbox)
+        ## # Ensure we center such that we can depict the sbox kpc box
+        # The coordinates have already been fixed... 
+        ## if (abs(x) > bs/2.0 - sbox/2.0):
+        ##     x = np.sign(x) * (bs/2.0 - sbox/2.0)
+        ## if (abs(y) > bs/2.0 - sbox/2.0):
+        ##     y = np.sign(y) * (bs/2.0 - sbox/2.0)
+        ## if (abs(zz) > bs/2.0 - sbox/2.0):
+        ##     zz = np.sign(zz) * (bs/2.0 - sbox/2.0)
+        ## print( "Star offset adjusted for boxsize [%.2lf %.2lf %.2lf]"%(x,y,zz))
             
         xmin = x - sbox/2.0
         xmax = x + sbox/2.0
@@ -121,8 +125,8 @@ for locF,massF,ZF,ppfF,pzfF in zip(locFiles,massFiles,ZFiles,ppfFiles,ppzFiles):
         if len(locsFilt) == 0: continue
         massFilt = mass[xcond & ycond & zcond] # filter: just get stars in plot region
         Zfilt    = Z[xcond & ycond & zcond] # filter: just get stars in plot region
-        #ppfFilt  = ppf[xcond & ycond & zcond] # filter: just get stars in plot region
-        #pzfFilt  = pzf[xcond & ycond & zcond] # filter: just get stars in plot region
+        ppfFilt  = ppf[xcond & ycond & zcond] # filter: just get stars in plot region
+        pzfFilt  = pzf[xcond & ycond & zcond] # filter: just get stars in plot region
 
         # Normalize locations
         locsFilt = locsFilt - np.array([x,y,zz])
@@ -131,6 +135,8 @@ for locF,massF,ZF,ppfF,pzfF in zip(locFiles,massFiles,ZFiles,ppfFiles,ppzFiles):
         rng2 = ((Zfilt >= 1.e-5) & (Zfilt < 1.e-3))
         rng3 = ((Zfilt >= 1.e-3) & (Zfilt < 1.e-1))
         rng4 = (Zfilt >= 1.e-1)
+        print(Zfilt[rng4])
+        print(locsFilt[rng4])
         z1=np.log10(Zfilt[rng1])
         z2=np.log10(Zfilt[rng2])
         z3=np.log10(Zfilt[rng3])
@@ -193,5 +199,9 @@ for locF,massF,ZF,ppfF,pzfF in zip(locFiles,massFiles,ZFiles,ppfFiles,ppzFiles):
         print( "Files saved: SP_Z_locs4Panel_z=%.1lf-%i.pdf"%(z,indx))
         print( "\n")
         plt.close()
+        np.savetxt("4PanelPlotMassTotals_z=%.1lf-%i.txt"%(z,indx),massFilt,comments='')
+        np.savetxt("4PanelPlotPopIIIMassTotals_z=%.1lf-%i.txt"%(z,indx),massFilt * ppfFilt,comments='')
+        np.savetxt("4PanelPlotPZMassTotals_z=%.1lf-%i.txt"%(z,indx), (1.0-ppfFilt * massFilt) * 
+                                   (ppfFilt / Zfilt) * massFilt,comments='')
 
     i=i+1
