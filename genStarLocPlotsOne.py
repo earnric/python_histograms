@@ -168,6 +168,20 @@ for locF,massF,ZF,ppfF,pzfF in zip(locFiles,massFiles,ZFiles,ppfFiles,ppzFiles):
         ax1.set_xlabel('x kpc')
         ax1.set_ylabel('y kpc')
 
+        xpos = ax1.get_xlim()[1] - 0.15 * ax1.get_xlim()[1]
+        ypos = ax1.get_ylim()[1] - 0.125 * ax1.get_ylim()[1]
+        size = min(mass)
+        legStr = '    {:.0f}'.format(size)
+        legStr = legStr + " $M_{\odot}$"
+#        letStr = "%6.1f $M_{\odot}$\n\r1500 $M_{\odot}$"
+        bbox = {'facecolor':'white', 'alpha':0.1, 'pad':4}
+        ax1.annotate(legStr,xy=(xpos,ypos), xytext=(xpos+0.01, ypos), 
+                horizontalalignment='right', bbox=bbox, size=20)
+        ax1.scatter(np.array([xpos-0.021]), np.array([ypos+0.0025]), s=np.array([min(mass)])/dotNorm,facecolors='none')
+#        ax1.annotate(legStr,xy=(xpos,ypos), xytext=(xpos+0.01, ypos), 
+#                horizontalalignment='right', bbox=bbox, size=20)
+#        ax1.scatter(np.array([xpos-0.021,xpos-0.021]), np.array([ypos+0.0025,ypos-0.001]), s=np.array([min(mass),1500.])/dotNorm,facecolors='none')
+
         # Control number of ticks
         ax1.locator_params(nbins=5)
     
