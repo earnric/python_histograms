@@ -74,11 +74,12 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     import matplotlib.patches as patches
     from matplotlib.ticker import FuncFormatter
 
-    mass = mass[x < 1E-3]
-    pf = pf[x < 1E-3]
-    y=y[x < 1E-3]
-    x=x[x < 1E-3]
-
+    # If we had Z/f_pol = inf or nan it means with had f_pol = 0 or both = 0
+    x[np.isinf(x)] = 10**minX
+    y[np.isinf(y)] = 10**minX
+    x[np.isnan(x)] = 10**minX
+    y[np.isnan(y)] = 10**minX
+    
     labelsize = 34
     nullfmt = NullFormatter()
 
@@ -140,14 +141,14 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,maxCV])
     cbar.ax.set_yticklabels(cbarticks, size=24)
         
-    cbar.set_label('log $(M_{\odot, pol}\, / d\, ($ ' + xaxislabel
-                   + " $) \, / d\, ($log $(Z_{pri}/Z))\, /\, Mpc^{3})$ ", size=34)
+    cbar.set_label("log $(M/M_{\odot}\, / d\, ( " + xaxislabel
+                   + ") \, / d\, (" + yaxislabel+ ")\, /\, Mpc^{3})$", size=34)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
-    ax2dhist.set_xlabel(xaxislabel, size=34)
-    ax2dhist.set_ylabel(yaxislabel, size=34)
-    
+    ax2dhist.set_xlabel("$"+xaxislabel+"$", size=34)
+    ax2dhist.set_ylabel("$"+yaxislabel+"$", size=34)
+
     ax2dhist.set_xlim([10**minX,10**maxX])
     ax2dhist.set_ylim([10**minY,10**maxY])
     ax2dhist.set_xscale('log')
@@ -156,7 +157,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
 
     ax2dhist.xaxis.set_major_formatter(custom_formatter)
     ax2dhist.yaxis.set_major_formatter(custom_formatter)
-    
+        
     # Generate the xy axes histograms
     xlims = ax2dhist.get_xlim()
     ylims = ax2dhist.get_ylim()
@@ -244,23 +245,24 @@ import copy as copy
 files = [
     ## "18.00",
     ##"17.00",
-    ##"16.00",
+    "16.00",
     ## "15.00",
     ## "14.00",
     ## "13.00",
-    ##"12.00",
+    ## "12.00",
     ## "11.00",
     ## "10.00",
     ## "09.00",
     ## "08.50",
-    ##"08.00",
+    "08.00",
     ## "07.50",
     ## "07.00",
     ## "06.50",
-    ## "06.00",
+    "06.00",
     ## "05.50",
     "05.00"
 ]
+
 # Plot area sizes...
 left, width = 0.1, 0.61
 bottom, height = 0.1, 0.61
@@ -277,7 +279,7 @@ xbins = ybins = 100
 prefix = "./"
 minCV = 1; maxCV = 10
 for indx, z in enumerate(files):
-    spZ  = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
+    spZ = np.loadtxt(prefix + "spZ_" + z + ".txt", skiprows=1)
     spPZ = np.loadtxt(prefix + "spPZ_" + z + ".txt", skiprows=1)
     spPF = np.loadtxt(prefix + "spPPF_" + z + ".txt", skiprows=1)
     spMass = np.loadtxt(prefix + "spMass_" + z + ".txt", skiprows=1)
@@ -285,36 +287,41 @@ for indx, z in enumerate(files):
     print ("Generating phase diagram for z=%s" % z)
 
     # Set plot limits, log space
-    minY = -8.2; maxY = 0.5
-    minX = -8.2; maxX = 0.5
-    histMax = 10
-
-    minX = -8.2
-    histMax = 10
-    f_pol = np.ma.masked_less_equal((1.0 - spPF), 0.0)  # The polluted fraction
+    minY = -4.0; maxY = 0.5
+    minX = -8.0; maxX = 0.5
+    histMax = 12
+    genDensityPlot(spZ, # x-axis
+                  (spPZ / spZ), # y-axis
+                   spMass, spPF, z,
+                   "Z-vs-Z_P-MassHistLogFullNorm",
+                   "log\,(<Z>/Z_{\odot})",
+                   "log\,(Z_{P}/<Z>)", normByPMass=False)
     
-    genDensityPlot(
-                   (spZ / f_pol) - (spPZ/f_pol)+1e-8, # x-axis
-                   (spPZ / f_pol),  # y-axis
-                   spMass, spPF, z,
-                   "Z-ZP_f-vs-ZP_f-2", "log $((Z_{\odot}-ZP_{\odot})/f_{pol})$","log $(ZP_{\odot}/f_{pol})$")
+    f_pol = (1.0 - spPF)  # The polluted fraction
 
-    genDensityPlot(
-                   (spZ / f_pol) - (spPZ/f_pol)+1e-8, # x-axis
-                   (spZ / f_pol),  # y-axis
-                   spMass, spPF, z,
-                   "Z-ZP_f-vs-Z_f-2", "log $((Z_{\odot}-ZP_{\odot})/f_{pol})$","log $(Z_{\odot}/f_{pol})$")
+    ## minX = -6.0
+    ## histMax = 10
+    ## genDensityPlot((spZ), # x-axis
+    ##                (spPZ / spZ) / f_pol,  # y-axis
+    ##                spMass, spPF, z,
+    ##                "Z-vs-Z_P_fpol-MassHistLogFullNorm",
+    ##                "log\,(Z/Z_{\odot})",
+    ##                "log\,(Z_{P}/Z/f_{pol}/Z_{\odot})")
 
-    genDensityPlot(
-                   (spZ  - spPZ)+1e-8, # x-axis
-                   (spPZ),  # y-axis
+    minX = -5.0
+    histMax = 10
+    genDensityPlot((spZ) / f_pol, # x-axis
+                   (spPZ / spZ),  # y-axis
                    spMass, spPF, z,
-                   "Z-ZP-vs-ZP-2", "log $(Z_{\odot}-ZP_{\odot})$","log $(ZP_{\odot})$",False)
+                   "Z_fpol-vs-Z_P-MassHistLogFullNorm",
+                   "log\,(<Z>/f_{pol}/Z_{\odot})",
+                   "log\,(Z_{P}/<Z>)")
 
-    genDensityPlot(
-                   (spZ  - spPZ)+1e-8, # x-axis
-                   (spZ),  # y-axis
-                   spMass, spPF, z,
-                   "Z-ZP-vs-Z-2", "log $(Z_{\odot}-ZP_{\odot})$","log $(Z_{\odot})$",False)
-
-    
+    ## minX = -5.0
+    ## histMax = 10
+    ## genDensityPlot((spZ) / f_pol, # x-axis
+    ##                (spPZ / spZ) / f_pol,  # y-axis, this doesn't make sense: Z_P/Z is a pure fraction
+    ##                spMass, spPF, z,
+    ##                "Z-f_pol-vs-Z_P_f_pol-MassHistLogFullNorm",
+    ##                "log\,(Z/f_{pol}/Z_{\odot})",
+    ##                "log\,(Z_{P}/Z/f_{pol}/Z_{\odot})")
