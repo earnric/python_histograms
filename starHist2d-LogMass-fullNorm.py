@@ -149,15 +149,17 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     cbarticks = [1,2,4,6,8,maxCV]
     cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,maxCV])
     cbar.ax.set_yticklabels(cbarticks, size=labelsize)
-        
-    cbar.set_label("log $(M/M_{\odot}\, / d\, ( " + xaxislabel
-                   + ") \, / d\, (" + yaxislabel+ ")\, /\, Mpc^{3})$", size=labelsize,
-                   y=0.6)
+
+    clabel = r'${\rm log}\, (M/M_{\odot}\, / d\, (' + xaxislabel + r') \, / d\, (' + yaxislabel + r')\, /\, {\rm Mpc}^{3})$'
+
+    print("Color label: ",clabel)
+
+    cbar.set_label(clabel, size=labelsize, y=0.6)
 
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
-    ax2dhist.set_xlabel("$\; "+xaxislabel+" $", size=labelsize)
-    ax2dhist.set_ylabel("$\; "+yaxislabel+" $", size=labelsize)
+    ax2dhist.set_xlabel('$'+xaxislabel+'$', size=labelsize)
+    ax2dhist.set_ylabel('$'+yaxislabel+'$', size=labelsize)
 
     ax2dhist.set_xlim([10**(minX-0.1),10**maxX])
     ax2dhist.set_ylim([10**(minY-0.1),10**maxY])
@@ -231,7 +233,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     if z[0] == '0': titlez = z[1:]
     ## axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + "-z_%s.pdf"%z, dpi=fig.dpi,bbox_inches='tight')
+    plt.savefig(filename + '-z_%s.pdf'%z, dpi=fig.dpi,bbox_inches='tight')
     # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return
@@ -321,34 +323,34 @@ for indx, z in enumerate(files):
     genDensityPlot(spZ_corr, # x-axis
                    PZ_Z,  # y-axis
                    spMass, spPF, z,
-                   "Z_fpol-vs-Z_P-MassHistLogFullNorm",
-                   "$log $(Z_{\star}/Z_{\odot})",
-                   r'$log $(Z_{P,\star}/\langle Z_{\star}\rangle)')
+                   'Z_fpol-vs-Z_P-MassHistLogFullNorm',
+                   r'{\rm log}\, (Z_{\star}/Z_{\odot})',
+                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)')
 
-    print("***** <Z> vs PZ/Z")
+    print('***** <Z> vs PZ/Z')
     genDensityPlot(spZ, # x-axis
                    PZ_Z, # y-axis
                    spMass, spPF, z,
-                   "Z-vs-Z_P-MassHistLogFullNorm",
-                   r'$log $(\langle Z\rangle/Z_{\odot})',
-                   r'$log $(Z_{P,\star}/\langle Z_{\star}\rangle)', normByPMass=False)
+                   'Z-vs-Z_P-MassHistLogFullNorm',
+                   r'{\rm log}\, (\langle Z_{\star}\rangle/Z_{\odot})',
+                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)', normByPMass=False)
     
-    ## if z == '05.00':
-    ##     print("Making comparison plots ...")
-    ##     minX = -8.1
-    ##     histMax = 10
-    ##     print("***** Z_star vs PZ/Z")
-    ##     genDensityPlot(spZ_corr, # x-axis
-    ##                 PZ_Z,  # y-axis
-    ##                 spMass, spPF, z,
-    ##                 "Z_fpol-vs-Z_P-MassHistLogFullNorm-fullX",
-    ##                 "$log $(Z_{\star}/Z_{\odot})",
-    ##                 r'$log $(Z_{P,\star}/\langle Z_{\star}\rangle)')
+    if z == '05.00':
+        print('Making comparison plots ...')
+        minX = -8.1
+        histMax = 10
+        print('***** Z_star vs PZ/Z')
+        genDensityPlot(spZ_corr, # x-axis
+                    PZ_Z,  # y-axis
+                    spMass, spPF, z,
+                    'Z_fpol-vs-Z_P-MassHistLogFullNorm-fullX',
+                    r'{\rm log}\, (Z_{\star}/Z_{\odot})',
+                    r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)')
         
-    ##     print("***** <Z> vs PZ/Z")
-    ##     genDensityPlot(spZ, # x-axis
-    ##                PZ_Z, # y-axis
-    ##                spMass, spPF, z,
-    ##                "Z-vs-Z_P-MassHistLogFullNorm-fullX",
-    ##                r'$log $(\langle Z_{\star}\rangle/Z_{\odot})',
-    ##                r'$log $(Z_{P,\star}/\langle Z_{\star}\rangle)', normByPMass=False)
+        print('***** <Z> vs PZ/Z')
+        genDensityPlot(spZ, # x-axis
+                   PZ_Z, # y-axis
+                   spMass, spPF, z,
+                   'Z-vs-Z_P-MassHistLogFullNorm-fullX',
+                   r'{\rm log}\, (\langle Z_{\star}\rangle/Z_{\odot})',
+                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)', normByPMass=False)
