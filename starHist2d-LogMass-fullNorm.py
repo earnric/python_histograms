@@ -74,6 +74,8 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     import matplotlib.patches as patches
     from matplotlib.ticker import FuncFormatter
 
+    zint = int(float(z))
+
     # If we had Z/f_pol = inf or nan it means with had f_pol = 0 or both = 0
     x[np.isinf(x)] = 10**minX
     x[np.isnan(x)] = 10**minX
@@ -83,19 +85,26 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
 
     x[x<=10**minX] = 10**minX # catch the 0's... 
     y[y<=10**minY] = 10**minY
+    y[x==10**minX] = 10**0    # Move all the pop III stars to upper left
     
     # Fix any incoming bogus points...
     y[y > 1.0] = 1.0  # spPZ / spZ - Fix any numerical errs that could result in y>1
 
+    # ################################################################
+    # For weighting of PopIII Stars, ensure fpol = 1 since we've
+    # already fixed x and y
+    pf[pf > 1.0 - 1e-6] = 0.0
+    # ################################################################
+    
     ## print("genDensityPlot after X Inf #",len(x[np.isinf(x)]))
     ## print("genDensityPlot after X Nan #",len(x[np.isnan(x)]))
-    print("genDensityPlot after X 10**minX #",len(x[x==10**minX]),minX)
-    print("genDensityPlot after X 0 #",len(x[x==0]),minX)
+    ## print("genDensityPlot after X 10**minX #",len(x[x==10**minX]),minX)
+    ## print("genDensityPlot after X 0 #",len(x[x==0]),minX)
     ## print("genDensityPlot after y Inf #",len(y[np.isinf(y)]))
     ## print("genDensityPlot after y Nan #",len(y[np.isnan(y)]))
-    print("genDensityPlot after y 10**minY #",len(y[y == 10**minY]),minY)
+    ## print("genDensityPlot after y 10**minY #",len(y[y == 10**minY]),minY)
 
-    labelsize = 42
+    labelsize = 46
     nullfmt = NullFormatter()
 
     #FuncFormatter class instance defined from the function above
@@ -145,17 +154,6 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     # Create a plot of the binned data, use a fixed lognormal scale
     cax = (ax2dhist.pcolormesh(X, Y, H, cmap=cmap, norm=LogNorm(vmin=minCV,vmax=maxCV)))
 
-    # Setup the color bar
-    cbarticks = [1,2,4,6,8,maxCV]
-    cbar = fig.colorbar(cax, ticks=[1,2,4,6,8,maxCV])
-    cbar.ax.set_yticklabels(cbarticks, size=labelsize)
-
-    clabel = r'${\rm log}\, (M/M_{\odot}\, / d\, (' + xaxislabel + r') \, / d\, (' + yaxislabel + r')\, /\, {\rm Mpc}^{3})$'
-
-    print("Color label: ",clabel)
-
-    cbar.set_label(clabel, size=labelsize, y=0.6)
-
     ax2dhist.tick_params(axis='x', labelsize=labelsize)
     ax2dhist.tick_params(axis='y', labelsize=labelsize)
     ax2dhist.set_xlabel('$'+xaxislabel+'$', size=labelsize)
@@ -169,7 +167,8 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
 
     ax2dhist.xaxis.set_major_formatter(custom_formatter)
     ax2dhist.yaxis.set_major_formatter(custom_formatter)
-        
+    xpos = 1e-5;ypos = 10**-3.77
+    ax2dhist.text(xpos,ypos,'z = %d'%zint, fontsize=32)
     # Generate the xy axes histograms
     xlims = ax2dhist.get_xlim()
     ylims = ax2dhist.get_ylim()
@@ -180,10 +179,10 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     # weighted counts. 
     # Normalize the histogram heights by the bin width & comoving volume
     if normByPMass:
-        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass * (1.0 - pf))
+        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, edgecolor='none', weights=mass * (1.0 - pf))
         normBarHeight(bins, patches, cmvol)
     else:
-        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, weights=mass)
+        N, bins, patches = axHistx.hist(x, bins=xrange, log=True, edgecolor='none', weights=mass)
         normBarHeight(bins, patches, cmvol)
 
     axHistx.set_xscale("log")
@@ -192,14 +191,16 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     ##########################################################
     # Create the histograms for the x and y axes
     if normByPMass:
-        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass * (1.0 - pf),
+        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, edgecolor='none', weights=mass * (1.0 - pf),
                                         orientation='horizontal')
         normBarHeight(bins, patches, cmvol, rotated=True)
 
     else:
-        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, weights=mass,
+        N, bins, patches = axHisty.hist(y, bins=yrange, log=True, edgecolor='none', weights=mass,
                                         orientation='horizontal')        
         normBarHeight(bins, patches, cmvol, rotated=True)
+        xpos = 1e-5;ypos = 10**-3.97
+        ax2dhist.text(xpos,ypos,'Uncorrected', fontsize=32)
 
     axHisty.set_yscale('log')
     colorHistOnHeight(N, bins, patches, cmvol) # Normalizes colors to our colorbar
@@ -229,8 +230,23 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     axHistx.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-    titlez = z
-    if z[0] == '0': titlez = z[1:]
+    # ###########################
+    # Setup the color bar
+    # ###########################
+    if z in ['12.00','06.00','05.00'] and normByPMass:
+        cbarticks = [1,2,4,6,8,maxCV]
+        ## cbar = fig.colorbar(cax, fraction=0.1 ,spacing='uniform', ticks=[1,2,4,6,8,maxCV])
+        ## cbar.ax.set_yticklabels(cbarticks, size=labelsize)
+        divider = make_axes_locatable(axHisty)
+        div = divider.append_axes("right", size="15%", pad=0.05)
+        cbar = fig.colorbar(cax, cax=div ,spacing='uniform', ticks=[1,2,4,6,8,maxCV])
+        cbar.ax.set_yticklabels(cbarticks, size=labelsize)
+        
+    ## clabel = r'${\rm log}\, \left(M/M_{\odot}\, / d\, \left(' + xaxislabel + r'\right) \, / d\, \left(' + yaxislabel + r'\right)\, /\, {\rm Mpc}^{3}\right)$'
+    ## cbar.set_label(clabel, size=labelsize - 4, y=0.6)
+
+    ## titlez = z
+    ## if z[0] == '0': titlez = z[1:]
     ## axHistx.set_title('z=' + titlez, size=40)
 
     plt.savefig(filename + '-z_%s.pdf'%z, dpi=fig.dpi,bbox_inches='tight')
@@ -251,22 +267,24 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import LogFormatterMathtext
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import copy as copy
+import gc
 
 files = [
     ## "18.00",
     ##"17.00",
-    "16.00",
+#    "16.00",
     ## "15.00",
     ## "14.00",
     ## "13.00",
-    ## "12.00",
+    "12.00",
     ## "11.00",
-    ## "10.00",
+#    "10.00",
     ## "09.00",
     ## "08.50",
-    "08.00",
+#    "08.00",
     ## "07.50",
     ## "07.00",
     ## "06.50",
@@ -277,12 +295,13 @@ files = [
 
 # Plot area sizes...
 left, width = 0.1, 0.61
-bottom, height = 0.1, 0.61
-bottom_h = left_h = left + width + 0.01
+bottom, height = 0.1, (0.61 * 4.0/5.1)
+bottom_h = left + height + 0.0
+left_h = left + width + 0.0
 
 rect_2dhist = [left, bottom, width, height]
-rect_histx = [left, bottom_h, width, 0.15]
-rect_histy = [left_h, bottom, 0.2, height]
+rect_histx = [left, bottom_h, width, 0.11]
+rect_histy = [left_h, bottom, 0.125, height]
 
 # Number of bins
 xbins = ybins = 100
@@ -296,10 +315,17 @@ for indx, z in enumerate(files):
     spPF = np.loadtxt(prefix + "spPPF_" + z + ".txt", skiprows=1)
     spMass = np.loadtxt(prefix + "spMass_" + z + ".txt", skiprows=1)
 
+    # RS - 24 Feb, don't let polluted fraction be less than 1:1e6
+    print("\nFixing really small polluted fractions...")
+    print("P > 1-1e-6: ", len(spPF[(spPF > 1.0-1e-10) & (spPF < 1.0)]))
+    spPF[spPF > 1.0-1e-6] = 1.0
+
     print ("\nGenerating phase diagram for z=%s\n" % z)
     print("Z < 5.1", len(spZ[spZ<1e-5]))
     print("Z == 0", len(spZ[spZ==0]))
     f_pol = (1.0 - spPF)  # The polluted fraction
+    print("f_pol < 1e-6: ", len(f_pol[f_pol < 1e-6]))
+    print("f_pol == 0: ", len(f_pol[f_pol == 0.0]))
 
     # Put 0 metallicity stars just below critical... 
     spZ_corr = spZ / f_pol
@@ -316,7 +342,7 @@ for indx, z in enumerate(files):
     spZ_corr[spZ_corr < 1e-5] = 0.0
     
     # Set plot limits, log space
-    minY = -4.1; maxY = 0.1
+    minY = -4.0; maxY = 0.1
     minX = -5.1; maxX = 0.1
     histMax = 10
     print("***** Z_star vs PZ/Z")
@@ -324,33 +350,35 @@ for indx, z in enumerate(files):
                    PZ_Z,  # y-axis
                    spMass, spPF, z,
                    'Z_fpol-vs-Z_P-MassHistLogFullNorm',
-                   r'{\rm log}\, (Z_{\star}/Z_{\odot})',
-                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)')
+                   r'{\rm log}\, \left(Z_{\star}/Z_{\odot}\right)',
+                   r'{\rm log}\, \left(Z_{{\rm P},\star} / Z_{\star} \right)')
 
-    print('***** <Z> vs PZ/Z')
-    genDensityPlot(spZ, # x-axis
-                   PZ_Z, # y-axis
-                   spMass, spPF, z,
-                   'Z-vs-Z_P-MassHistLogFullNorm',
-                   r'{\rm log}\, (\langle Z_{\star}\rangle/Z_{\odot})',
-                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)', normByPMass=False)
-    
     if z == '05.00':
-        print('Making comparison plots ...')
-        minX = -8.1
-        histMax = 10
-        print('***** Z_star vs PZ/Z')
-        genDensityPlot(spZ_corr, # x-axis
-                    PZ_Z,  # y-axis
-                    spMass, spPF, z,
-                    'Z_fpol-vs-Z_P-MassHistLogFullNorm-fullX',
-                    r'{\rm log}\, (Z_{\star}/Z_{\odot})',
-                    r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)')
-        
         print('***** <Z> vs PZ/Z')
         genDensityPlot(spZ, # x-axis
-                   PZ_Z, # y-axis
-                   spMass, spPF, z,
-                   'Z-vs-Z_P-MassHistLogFullNorm-fullX',
-                   r'{\rm log}\, (\langle Z_{\star}\rangle/Z_{\odot})',
-                   r'{\rm log}\, (Z_{{\rm P},\star}/\langle Z_{\star}\rangle)', normByPMass=False)
+                    PZ_Z, # y-axis
+                    spMass, spPF, z,
+                    'Z-vs-Z_P-MassHistLogFullNorm',
+                    r'{\rm log}\, \left(\langle Z_{\star}\rangle/Z_{\odot}\right)',
+                    r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)',
+                    normByPMass=False)
+    gc.collect()
+    ## if z == '05.00':
+    ##     print('Making comparison plots ...')
+    ##     minX = -8.1
+    ##     histMax = 10
+    ##     print('***** Z_star vs PZ/Z')
+    ##     genDensityPlot(spZ_corr, # x-axis
+    ##                 PZ_Z,  # y-axis
+    ##                 spMass, spPF, z,
+    ##                 'Z_fpol-vs-Z_P-MassHistLogFullNorm-fullX',
+    ##                 r'{\rm log}\, \left(Z_{\star}/Z_{\odot}\right)',
+    ##                 r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)')
+        
+    ##     print('***** <Z> vs PZ/Z')
+    ##     genDensityPlot(spZ, # x-axis
+    ##                PZ_Z, # y-axis
+    ##                spMass, spPF, z,
+    ##                'Z-vs-Z_P-MassHistLogFullNorm-fullX',
+    ##                r'{\rm log}\, \left(\langle Z_{\star}\rangle/Z_{\odot}\right)',
+    ##                r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)', normByPMass=False)
