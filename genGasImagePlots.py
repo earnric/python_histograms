@@ -3,17 +3,17 @@ from matplotlib.pylab import *
 import matplotlib.pyplot as plt 
 import pynbody
 import pynbody.plot.sph as sph
-import mmap
+import sys
 
-pynbody.ramses.multiprocess_num = 12
+pynbody.ramses.multiprocess_num = 8
 pynbody.config['number_of_threads'] = 24
 
 rcParams['figure.figsize'] = (12,9)
 rcParams['font.size'] = 36
 
 
-s = pynbody.load('output_00016')  # z=16
-## s = pynbody.load('output_00121')  # z=8
+## s = pynbody.load('output_00016')  # z=16
+s = pynbody.load('output_00121')  # z=8
 print ("Loading {}".format('file...'))
 s['pos']
 s['pos'] -= 0.5
@@ -29,17 +29,14 @@ gc.collect()
 
 s.g['zsolar']  = s.g['metal'] * 50.0         # Solar units
 s.g['pzsolar'] = s.g['pzf'] * 50.0           # Solar units
-s.g['zsolarOrig']=s.g['zsolar']
 
 s.g['zsolar'][s.g['zsolar']< 1e-5] = 1e-6
 s.g['pzsolar'][s.g['pzsolar']< 1e-5] = 1e-6
-# compute enhanced Z
-s.g['zEnhanced'] = s.g['zsolarOrig']/(1.0-s.g['pgf'])
-s.g['zEnhanced'][s.g['zEnhanced'] == np.nan] = 1e-6
-s.g['zEnhanced'][s.g['zEnhanced'] == np.inf] = 1e-6
-s.g['zEnhanced'][s.g['zEnhanced']< 1e-5] = 1e-6
 
-sbox = 40.0 / (1.0 + z) * 0.71 # 40 kpc comoving box
+# ##############################
+#  BOX SIZE
+# ##############################
+sbox = 120.0 / (1.0 + z) * 0.71 # 40 kpc comoving box
 smallbox = str(sbox) + " kpc"
 print(smallbox)
 
@@ -52,9 +49,12 @@ print(smallbox)
 ## i=1540 # 00016, 1540
 
 ## The one that matches the scatter plot example... 
-rx,ry,rz =  43.96, 26.56, 121.94 # 00016
-tic = 0.5
-i=770 # 00016, 1540
+## rx,ry,rz =  43.96, 26.56, 121.94 # 00016
+## tic = 0.5
+## i=770 # 00016, 1540
+
+# #################################################
+# #################################################
 
 # z=8, i=0 : -121.77, -104.01, -203.10
 # z=8, i=265793 : -0.88, 215.56, 143.27
@@ -65,10 +65,21 @@ i=770 # 00016, 1540
 ## tic = 0.8
 ## i=0  # 00121, 0
 
+## The one at z=8 that matches the scatter plot
+rx,ry,rz = -0.88, 215.56, 143.27
+tic = 2.5
+i=265793
+
 print(rx,ry,rz)
 
 impData = s[pynbody.filt.Cuboid(str((rx-sbox/2.0)) + " kpc", str((ry-sbox/2.0)) + " kpc",str((rz-sbox/4.0)) + " kpc",
                                 str((rx+sbox/2.0)) + " kpc", str((ry+sbox/2.0)) + " kpc",str((rz+sbox/4.0)) + " kpc")]
+
+minPGF = impData.g['pgf'].min()
+maxPGF = impData.g['pgf'].max()
+if minPGF == maxPGF:
+    print("MIN = MAX PGF ... aborting")
+    sys.exit(0)
 
 rect = [0.15,0.15,0.85,0.9]
 coords= [-rx,-ry,-rz] # Translation requires negative of the coord
@@ -81,40 +92,10 @@ with pynbody.transformation.translate(impData,coords):
     titleStr = r"$Z_{\odot}$ - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
     print (titleStr)
     sph.image(impData.g,qty="zsolar",width=smallbox,cmap="nipy_spectral", denoise=True ,av_z=False, subplot=ax,
-                      log=True, vmax=1.0, vmin=1e-6, qtytitle=r"${\rm log}\, \langle Z\rangle/Z_{\odot}$",
+                      log=True, vmax=1.0, vmin=1e-7, qtytitle=r"${\rm log}\, \langle Z\rangle/Z_{\odot}$",
                       approximate_fast=False
                       ); #vmin=0.006, vmax=1.0,
     ax.set_xticks([-tic, 0, tic])
-    ## ax.set_xticklabels(['-0.7','0','0.7'])
-    plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
-    plt.close(fig)
-            
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    #ax.yaxis.set_visible(False)
-    #ax.set_xlabel(fontsize=40)
-    fileOut = "img_log_ax_Z-f_pol-z=%.1lf-%i.pdf"% (z,i)
-    titleStr = r"$Z_{\odot}/f_{pol}$ - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
-    print (titleStr)
-    sph.image(impData.g,qty="zEnhanced",width=smallbox,cmap="nipy_spectral", denoise=True ,av_z=False, subplot=ax,
-                      log=True, vmax=1.0, vmin=1e-6, qtytitle=r"${\rm log}\, Z/Z_{\odot}$", approximate_fast=False
-                      ); #vmin=0.006, vmax=1.0,
-    ax.set_xticks([-tic, 0, tic])
-    ax.set_yticks([-tic, 0, tic])
-    plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
-    plt.close(fig)
-    del(ax)
-        
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    fileOut = "img_log_ax_PGF-z=%.1lf-%i.pdf"% (z,i)
-    titleStr = "PGF - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
-    print (titleStr)
-    sph.image(impData.g,qty="pgf",width=smallbox,cmap="nipy_spectral", denoise=True ,av_z=False,subplot=ax,
-                      log=True, vmax = 1.0, vmin=1e-6, qtytitle=r"${\rm log}\, P}$",approximate_fast=False
-                      ); #vmin=0.006, vmax=1.0,
-    ax.set_xticks([-tic, 0, tic])
-    ax.set_yticks([-tic, 0, tic])
     plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
     plt.close(fig)
     del(ax)
@@ -127,32 +108,28 @@ with pynbody.transformation.translate(impData,coords):
     titleStr = r"$Z_{P, \odot}$ - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
     print (titleStr)
     sph.image(impData.g,qty="pzsolar",width=smallbox,cmap="nipy_spectral", denoise=True ,av_z=False,subplot=ax,
-                      log=True, vmax=1.0, vmin=1e-6, qtytitle=r"${\rm log}\,\langle Z_{P}\rangle /Z_{\odot}$",
-                      approximate_fast=False
-                      );
-            
+                      log=True, vmax=1.0, vmin=1e-7, qtytitle=r"${\rm log}\,\langle Z_{P}\rangle /Z_{\odot}$",
+                      approximate_fast=False );
     ax.set_xticks([-tic, 0, tic])
-    ## ax.set_xticklabels(['-0.7','0','0.7'])
     plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
     plt.close(fig)
     del(ax)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.xaxis.set_visible(True)
-    ax.yaxis.set_visible(True)
-    fileOut = "img_log_ax_v_r-z=%.1lf-%i.pdf"% (z,i)
-    titleStr = "Radial Vel - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
-    print (titleStr)
-    sph.image(impData.g,qty="vr",width=smallbox,cmap="RdYlBu_r", denoise=True ,av_z=False, units="km s^-1",
-                      log=True, approximate_fast=False, #vmin=10**-4.5, vmax=10**2.0,
-                      subplot=ax,qtytitle=r"${\rm log}\, v_{\rm r}\, {\rm km/s}$"); 
-    ax.set_yticks([-tic, 0,tic])
-    ## ax.set_yticklabels(['-0.7','0','0.7'])
-    plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
-    plt.close(fig)
+    ## fig = plt.figure()
+    ## ax = fig.add_subplot(111)
+    ## ax.xaxis.set_visible(True)
+    ## ax.yaxis.set_visible(True)
+    ## fileOut = "img_log_ax_v_r-z=%.1lf-%i.pdf"% (z,i)
+    ## titleStr = "Radial Vel - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
+    ## print (titleStr)
+    ## sph.image(impData.g,qty="vr",width=smallbox,cmap="RdYlBu_r", denoise=True ,av_z=False, units="km s^-1",
+    ##                   log=True, approximate_fast=False, #vmin=10**-4.5, vmax=10**2.0,
+    ##                   subplot=ax,qtytitle=r"${\rm log}\, v_{\rm r}\, {\rm km/s}$"); 
+    ## ax.set_yticks([-tic, 0,tic])
+    ## plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
+    ## plt.close(fig)
+    ## del(ax)
     
-    del(ax)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.xaxis.set_visible(False)
@@ -163,11 +140,11 @@ with pynbody.transformation.translate(impData,coords):
                       log=True, approximate_fast=False, vmin=10**-4.5, vmax=10**2.0,
                       subplot=ax,qtytitle=r"${\rm log}\,m_{\rm p}/{\rm cm}^{3}$"); 
     ax.set_yticks([-tic, 0,tic])
-    ## ax.set_yticklabels(['-0.7','0','0.7'])
     plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
     plt.close(fig)
-    
     del(ax)
+    gc.collect()
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.xaxis.set_visible(False)
@@ -180,6 +157,7 @@ with pynbody.transformation.translate(impData,coords):
                       qtytitle=r"${\rm log}\, c_{\rm s}\, {\rm km/s}$"); 
     plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight') 
     plt.close(fig)
+    del(ax)
     
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -194,7 +172,26 @@ with pynbody.transformation.translate(impData,coords):
                    show_cbar=True, vector_color='black') # gist_ncar
     plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight') 
     plt.close(fig)
-
+    del(ax)
+    gc.collect()
+                    
+    try: 
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        fileOut = "img_log_ax_PGF-z=%.1lf-%i.pdf"% (z,i)
+        titleStr = "PGF - z = %.1lf" % z# + "\n[%.2lf %.2lf %.2lf]"%(rx,ry,rz)
+        print (titleStr)
+        sph.image(impData.g,qty="pgf",width=smallbox,cmap="nipy_spectral", denoise=True ,av_z=False, subplot=ax,
+                log=True, vmax = 1.0, vmin=1e-7, qtytitle=r"${\rm log}\, P}$",approximate_fast=False);
+        ax.set_xticks([-tic, 0, tic])
+        ax.set_yticks([-tic, 0, tic])
+        plt.savefig(fileOut,dpi=fig.dpi,bbox_inches='tight')
+        plt.close(fig)
+        del(ax)
+    except:
+        print("Unable to make PGF plot")
+        pass
+    
 s.g['pzsolar'][s.g['pzsolar']< 1e-5] = 0.0   # Since we are looking at ratio
 
 print("Fraction of PM ", np.sum(impData.g['rho'] * impData.g['x']**3 * impData.g['pzsolar']/impData.g['zsolar'])/np.sum(impData.g['rho'] * impData.g['x']**3))

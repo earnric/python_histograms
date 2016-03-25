@@ -167,8 +167,8 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
 
     ax2dhist.xaxis.set_major_formatter(custom_formatter)
     ax2dhist.yaxis.set_major_formatter(custom_formatter)
-    xpos = 1e-5;ypos = 10**-3.77
-    ax2dhist.text(xpos,ypos,'z = %d'%zint, fontsize=32)
+    xpos = 1e-5;ypos = 10**-3.75
+    ax2dhist.text(xpos,ypos,'z = %d'%zint, fontsize=labelsize)
     # Generate the xy axes histograms
     xlims = ax2dhist.get_xlim()
     ylims = ax2dhist.get_ylim()
@@ -199,8 +199,8 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
         N, bins, patches = axHisty.hist(y, bins=yrange, log=True, edgecolor='none', weights=mass,
                                         orientation='horizontal')        
         normBarHeight(bins, patches, cmvol, rotated=True)
-        xpos = 1e-5;ypos = 10**-3.97
-        ax2dhist.text(xpos,ypos,'Uncorrected', fontsize=32)
+        xpos = 1e-5;ypos = 10**-4.0
+        ax2dhist.text(xpos,ypos,'Uncorrected', fontsize=labelsize)
 
     axHisty.set_yscale('log')
     colorHistOnHeight(N, bins, patches, cmvol) # Normalizes colors to our colorbar
@@ -279,7 +279,7 @@ files = [
     ## "15.00",
     ## "14.00",
     ## "13.00",
-    "12.00",
+#    "12.00",
     ## "11.00",
 #    "10.00",
     ## "09.00",
@@ -288,7 +288,7 @@ files = [
     ## "07.50",
     ## "07.00",
     ## "06.50",
-    "06.00",
+#    "06.00",
     ## "05.50",
     "05.00"
 ]
