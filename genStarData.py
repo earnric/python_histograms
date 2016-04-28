@@ -79,7 +79,7 @@ def outputMassTots(file,s,data,indx):
     data[indx] = [z, min(s.s['tform'].in_units('yr')), max(s.s['tform'].in_units('yr')),
                   totalStarMass,totalPop3StarMass,totalPolStarMass,totalPriStarMass,
                   totalGasMass,totalPristGasMass,totalPop3SubcritZStarMass,totNonPrimordStarMass]
-    
+    print ("Writing out totals for z=%.2lf"%z)
     np.savetxt("%s_new-data3Mpc.txt"%file,data[0:indx],comments='',header=headerStr) # comments='' gets rid of "#" in output
     del temp
     return data
@@ -94,9 +94,9 @@ def outputMassTots(file,s,data,indx):
 #%matplotlib inline
 import os
 import re # Regular expression matching
-import matplotlib as mpl
-mpl.use('Agg') # Needed if you don't have an X-server
-import matplotlib.pyplot as plt
+#import matplotlib as mpl
+#mpl.use('Agg') # Needed if you don't have an X-server
+#import matplotlib.pyplot as plt
 import numpy as np
 import pynbody
 import pynbody.plot as pp
@@ -108,10 +108,10 @@ import sys, os, glob, pickle, gc
 import math
 #import mmap
 
-mpl.rcParams['figure.figsize'] = (12,8)
-mpl.rcParams['font.size'] = 18
-pynbody.ramses.multiprocess_num = 32
-pynbody.config['number_of_threads'] = 128
+#mpl.rcParams['figure.figsize'] = (12,8)
+#mpl.rcParams['font.size'] = 18
+pynbody.ramses.multiprocess_num = 24
+pynbody.config['number_of_threads'] = 96
 
 # #######################################################
 # Initialize variables
@@ -119,31 +119,27 @@ pynbody.config['number_of_threads'] = 128
 # Create list of files to process
 files = [f for f in os.listdir('.') if re.match(r'output_000[0-9][0-9]', f)]
 files =[
-    # "output_00007",
-    #"output_00009",
-    # "output_00011",
-    #"output_00016",
-    #"output_00020"
-    # "output_00026",
-    "output_00033"
-    # "output_00037",
-    # "output_00043",
-    # "output_00050",
-    # "output_00058",
-    # "output_00066",
-    # "output_00068",
-    # "output_00073",
-    # "output_00084",
-    # "output_00097",
-    # "output_00107",
-    # "output_00121",
-    # "output_00136",
-    # "output_00152",
-    # "output_00169",
-    # "output_00191",
-    # "output_00214",
-    # "output_00237"
+    "output_00004",
+    "output_00005",  # z = 20 
+    "output_00006",
+    "output_00008", 
+    "output_00010", 
+    "output_00012", 
+    "output_00016", 
+    "output_00021",  # z = 14
+    "output_00029",  # z = 13
+    "output_00034", 
+    "output_00041", 
+    "output_00048",  # z = 11.5 
+    "output_00053", 
+    "output_00062", 
+    "output_00070", 
+    "output_00080", 
+    "output_00090",  # z = 9 
+    "output_00101", 
+    "output_00113"   # z = 8
     ]
+
 files.sort()
 print ("Files to process %d"%len(files))
 
@@ -184,7 +180,7 @@ for indx, file in enumerate(files):
 
     # Fix birth times
     print (s.derivable_keys()[1:5])
-    pynbody.analysis.ramses_util.get_tform(s,"/Users/earnric/bin/part2birth");
+    pynbody.analysis.ramses_util.get_tform(s,"/home/earnric/bin/part2birth");
 
     # ##########################################################
     # Output SP data
@@ -210,6 +206,6 @@ np.savetxt("zKeysForSPfiles2.txt",keys2,header="z,boxsize_kpc",comments='')
 # ##########################################################
 # Write out the array to a file
 print ("Mass totals\n",data)
-#np.savetxt("StarParicle-data3Mpc.txt",data,comments='',header=headerStr) # comments='' gets rid of "#" in output
+np.savetxt("StarParicle-data3Mpc.txt",data,comments='',header=headerStr) # comments='' gets rid of "#" in output
 del data
 print ("Done")

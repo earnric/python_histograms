@@ -275,20 +275,20 @@ import gc
 files = [
     ## "18.00",
     ##"17.00",
-#    "16.00",
+    "16.00",
     ## "15.00",
     ## "14.00",
     ## "13.00",
-#    "12.00",
+    "12.00",
     ## "11.00",
 #    "10.00",
     ## "09.00",
     ## "08.50",
-#    "08.00",
+    "08.00",
     ## "07.50",
     ## "07.00",
     ## "06.50",
-#    "06.00",
+    "06.00",
     ## "05.50",
     "05.00"
 ]
@@ -359,26 +359,7 @@ for indx, z in enumerate(files):
                     PZ_Z, # y-axis
                     spMass, spPF, z,
                     'Z-vs-Z_P-MassHistLogFullNorm',
-                    r'{\rm log}\, \left(\langle Z_{\star}\rangle/Z_{\odot}\right)',
-                    r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)',
+                    r'{\rm log}\, \left(\overline{Z_{\star}}/Z_{\odot}\right)',
+                    r'{\rm log}\, \left(\overline{Z_{{\rm P},\star}} /\overline{Z_{\star}} \right)',
                     normByPMass=False)
     gc.collect()
-    ## if z == '05.00':
-    ##     print('Making comparison plots ...')
-    ##     minX = -8.1
-    ##     histMax = 10
-    ##     print('***** Z_star vs PZ/Z')
-    ##     genDensityPlot(spZ_corr, # x-axis
-    ##                 PZ_Z,  # y-axis
-    ##                 spMass, spPF, z,
-    ##                 'Z_fpol-vs-Z_P-MassHistLogFullNorm-fullX',
-    ##                 r'{\rm log}\, \left(Z_{\star}/Z_{\odot}\right)',
-    ##                 r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)')
-        
-    ##     print('***** <Z> vs PZ/Z')
-    ##     genDensityPlot(spZ, # x-axis
-    ##                PZ_Z, # y-axis
-    ##                spMass, spPF, z,
-    ##                'Z-vs-Z_P-MassHistLogFullNorm-fullX',
-    ##                r'{\rm log}\, \left(\langle Z_{\star}\rangle/Z_{\odot}\right)',
-    ##                r'{\rm log}\, \left(\langle Z_{{\rm P},\star}\rangle /\langle Z_{\star}\rangle \right)', normByPMass=False)
