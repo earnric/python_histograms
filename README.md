@@ -18,3 +18,8 @@ is log of the weighted mass of the star particles.
 
 The starHist2d-MassLogNorm-fullNorm.py is supposed to normalize this data by the area of the bins
 (d log x / d log y) and the volume of the simulation: 27 Mpc^3 / h^3. This isn't working yet.
+
+
+#pyn-gas_and_star_analysis.ipynb
+
+Uses lin alg to determine all stars within radius of a given coordinate. Use HOP to find halo centers.
