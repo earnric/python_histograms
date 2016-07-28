@@ -172,9 +172,9 @@ for indx, file in enumerate(files):
     s.g['pzsolar'] = s.g['pzf'] * 50.0          # Solar units
 
     print("handle small values in Z, PZ")
-    s.s['metal'][s.s['metal']<1e-10]    = 1e-10
-    s.s['ppf'][s.s['ppf']>(1.0-1e-6)]  = 1.0
-    s.s['pzf'][s.s['pzf']<1e-10]        = 1e-10
+    s.s['metal'][s.s['metal']<1e-10]    = 1e-10 # Avoid 0's for now...
+#    s.s['ppf'][s.s['ppf']>(1.0-1e-6)]  = 1.0   # Set limits in post-processing, not here!
+    s.s['pzf'][s.s['pzf']<1e-10]        = 1e-10 # Avoid 0's for now...
     s.s['zsolar'] = s.s['metal'] * 50.0         # Solar units
     s.s['pzsolar'] = s.s['pzf'] * 50.0          # Solar units
 
