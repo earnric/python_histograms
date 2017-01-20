@@ -168,7 +168,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     ax2dhist.xaxis.set_major_formatter(custom_formatter)
     ax2dhist.yaxis.set_major_formatter(custom_formatter)
     xpos = 1e-5;ypos = 10**-3.75
-    ax2dhist.text(xpos,ypos,'z = %d'%zint, fontsize=labelsize)
+    ax2dhist.text(xpos,ypos,'$z = %d, Z_{crit} = %.1e$'%(zint,Zcrit), fontsize=38)
     # Generate the xy axes histograms
     xlims = ax2dhist.get_xlim()
     ylims = ax2dhist.get_ylim()
@@ -249,7 +249,7 @@ def genDensityPlot(x, y, mass, pf, z, filename, xaxislabel, yaxislabel, normByPM
     ## if z[0] == '0': titlez = z[1:]
     ## axHistx.set_title('z=' + titlez, size=40)
 
-    plt.savefig(filename + '-z_%s.pdf'%z, dpi=fig.dpi,bbox_inches='tight')
+    plt.savefig(filename + '-z_%s_update.pdf'%z, dpi=fig.dpi,bbox_inches='tight')
     # plt.show()
     plt.close(fig)  # Release memory assoc'd with the plot
     return

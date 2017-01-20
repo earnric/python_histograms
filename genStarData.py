@@ -168,8 +168,6 @@ for indx, file in enumerate(files):
 
     z_crit = 2.0e-7 # Mass fraction
     print ("Normalize Z data...")
-    s.g['zsolar'] = s.g['metal'] * 50.0         # Solar units
-    s.g['pzsolar'] = s.g['pzf'] * 50.0          # Solar units
 
     print("handle small values in Z, PZ")
     s.s['metal'][s.s['metal']<1e-10]    = 1e-10 # Avoid 0's for now...
